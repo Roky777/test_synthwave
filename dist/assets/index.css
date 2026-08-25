@@ -369,12 +369,14 @@
     /* translucent wash (not opaque) so the starfield/black-hole backdrop shows through */
     background:radial-gradient(900px 700px at 50% 40%, rgba(58,18,54,.62), rgba(15,6,14,.8));}
   /* ===== START SCREEN (Figma "synthwave" board) ===== */
-  /* Text + CSS, not the logo export. The gradient lives on the h1 rather than the spans so it
-     runs continuously across both lines, the way the artwork does. Contrast comes from the page
-     scrim (--scene-scrim), so this needs no dark outline of its own. */
+  /* Text + CSS to the Figma "logo-the-button" spec: Quantico 700 italic, 52px, 50px line height
+     (= .962), centred, gradient #F23BFF -> #FF4BA5 -> #FF9138. Size scales with the viewport and
+     tops out at the spec's 52px. The gradient lives on the h1, not the spans, so it runs once
+     across both lines the way the artwork does. Contrast comes from the page scrim
+     (--scene-scrim), so this needs no dark outline of its own. */
   .wordmark{display:block;text-align:center;font-style:italic;font-weight:700;
-    line-height:.92;letter-spacing:.005em;font-size:clamp(32px,10.4vw,50px);
-    background:linear-gradient(104deg,#FF3FD1 0%,#FF57B4 40%,#FF7E56 78%,#FF9A45 100%);
+    font-size:clamp(28px,9.3vw,52px);line-height:.962;letter-spacing:.02em;
+    background:linear-gradient(104deg,#F23BFF 0%,#FF4BA5 50%,#FF9138 100%);
     -webkit-background-clip:text;background-clip:text;
     color:transparent;-webkit-text-fill-color:transparent;
     filter:drop-shadow(0 0 18px color-mix(in srgb, var(--orb-ring) 50%, transparent))}
@@ -476,7 +478,7 @@
   /* Below ~620px tall the start screen's wordmark + orb push the theme pills off the bottom,
      so scale the two hero pieces down rather than letting the column scroll. */
   @media (max-height: 620px){
-    .wordmark{font-size:clamp(26px,8.6vw,38px)}
+    .wordmark{font-size:clamp(24px,7.8vw,38px)}
     .heroOrb{width:min(200px,30dvh,52vw)}
     .modeIcon{width:40px;height:40px}
     .modeText{font-size:15px}
