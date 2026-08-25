@@ -28,9 +28,10 @@
        on the button — that reads as a black ball. Raise --sun-tint-strength for a darker scene. */
     --sun-tint-height:clamp(200px,46dvh,520px);
     --sun-tint-strength:.42;
-    /* Flat black scrim over the whole backdrop during play, so the orb, HUD and prompt text all
-       gain contrast at once. Sits at z-index 1: above every bg layer, below #app (z-index 2). */
-    --scene-scrim:.26;
+    /* Flat black scrim over the whole backdrop, menu and gameplay alike, so the orb, headings,
+       HUD and prompt text all gain contrast at once. Sits at z-index 1: above every bg layer,
+       below #app (z-index 2). Raise for a darker page. */
+    --scene-scrim:.34;
     --sun-tint-z:0;
     --skyline-height:clamp(72px,13vh,130px);
     --skyline-z:1;
@@ -155,8 +156,7 @@
       rgba(8,1,13,calc(var(--sun-tint-strength) * .12)) 80%,
       transparent 100%)}
   body::after{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;
-    background:#000;opacity:0;transition:opacity .6s}
-  body:has(#hud:not(.hidden))::after{opacity:var(--scene-scrim)}
+    background:#000;opacity:var(--scene-scrim);transition:opacity .6s}
   /* The SVG's bottom edge is its baseline, pinned exactly to the shared horizon. */
   #skyline{position:fixed;left:0;right:0;bottom:calc(100% - var(--horizon-y));height:var(--skyline-height);z-index:var(--skyline-z);pointer-events:none;
     color:var(--grid);opacity:0;transition:opacity .6s;width:100%;
@@ -369,32 +369,18 @@
     /* translucent wash (not opaque) so the starfield/black-hole backdrop shows through */
     background:radial-gradient(900px 700px at 50% 40%, rgba(58,18,54,.62), rgba(15,6,14,.8));}
   /* ===== START SCREEN (Figma "synthwave" board) ===== */
-  /* The sun rises right behind the title. Contrast comes from the letterforms themselves --
-     a dark plate behind them just reads as a smudge over the scene. Gradient text is painted via
-     background-clip, so a text-shadow would show through the transparent fill; these stacked
-     drop-shadows build a 1px dark outline plus a soft drop, which works on the alpha instead. */
-  .wordmark{display:flex;flex-direction:column;align-items:center;gap:.02em;
-    font-style:italic;font-weight:700;line-height:.96;letter-spacing:.01em;
-    filter:drop-shadow(1px 0 0 rgba(0,0,0,.92)) drop-shadow(-1px 0 0 rgba(0,0,0,.92))
-           drop-shadow(0 1px 0 rgba(0,0,0,.92)) drop-shadow(0 -1px 0 rgba(0,0,0,.92))
-           drop-shadow(0 3px 7px rgba(0,0,0,.75))
-           drop-shadow(0 0 22px color-mix(in srgb, var(--orb-ring) 55%, transparent))}
-  .wordmark span{display:block;font-size:clamp(32px,10.6vw,50px);
-    background:linear-gradient(96deg,#FF3FD1 0%,#FF57B0 44%,#FF7A5C 100%);
-    -webkit-background-clip:text;background-clip:text;
-    color:transparent;-webkit-text-fill-color:transparent}
-  /* The front-page orb is decorative, so it uses the Figma export directly -- baked "PRESS" and all.
-     (The in-game button can't: it hosts 240 different prompts.) Export is 320x304, not square. */
-  /* Decorative front-page orb: the Figma export used as-is, baked "PRESS" included.
-     (The in-game button can't do this -- it hosts 240 different prompts.) 320x304, not square. */
-  .heroOrb{width:min(250px,42dvh,60vw);height:auto;display:block;flex:none;
-    filter:drop-shadow(0 8px 26px rgba(4,0,9,.55))}
+  .wordmark{width:min(330px,84vw);height:auto;display:block;
+    filter:drop-shadow(0 0 20px color-mix(in srgb, var(--orb-ring) 42%, transparent))}
   /* Soft dark plate so the prompt text separates from the lit orb face underneath. */
   #btn::before{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
     width:88%;height:64%;border-radius:50%;pointer-events:none;z-index:0;
     background:radial-gradient(ellipse at 50% 50%,
       rgba(3,0,7,.60) 0 42%, rgba(3,0,7,.32) 68%, transparent 100%);
     filter:blur(7px)}
+  /* Decorative front-page orb: the Figma export used as-is, baked "PRESS" included.
+     (The in-game button can't do this -- it hosts 240 different prompts.) 320x304, not square. */
+  .heroOrb{width:min(250px,42dvh,60vw);height:auto;display:block;flex:none;
+    filter:drop-shadow(0 8px 26px rgba(4,0,9,.55))}
   .modeIcon{width:48px;height:48px;flex:none;object-fit:contain}
   .modeIcon.em{display:grid;place-items:center;font-size:30px}
   .modeText{flex:1;min-width:0;display:block;font-size:16px;letter-spacing:.03em;color:#fff;line-height:1.15;
@@ -482,7 +468,7 @@
   /* Below ~620px tall the start screen's wordmark + orb push the theme pills off the bottom,
      so scale the two hero pieces down rather than letting the column scroll. */
   @media (max-height: 620px){
-    .wordmark span{font-size:clamp(26px,8.4vw,38px)}
+    .wordmark{width:min(280px,72vw)}
     .heroOrb{width:min(200px,30dvh,52vw)}
     .modeIcon{width:40px;height:40px}
     .modeText{font-size:15px}
