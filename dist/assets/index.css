@@ -361,7 +361,7 @@
 
   /* OVERLAYS */
   .overlay{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;
-    align-items:center;justify-content:center;gap:13px;text-align:center;padding:20px;
+    align-items:center;justify-content:center;justify-content:safe center;gap:13px;text-align:center;padding:20px;
     padding-top:max(26px, env(safe-area-inset-top));padding-bottom:max(26px, env(safe-area-inset-bottom));
     overflow-y:auto;-webkit-overflow-scrolling:touch;
     /* translucent wash (not opaque) so the starfield/black-hole backdrop shows through */
@@ -464,6 +464,15 @@
     .diffRow{gap:7px}
     .diffBtn{padding:9px 16px}
     .stats{gap:8px 20px}
+  }
+  /* Below ~620px tall the start screen's wordmark + orb push the theme pills off the bottom,
+     so scale the two hero pieces down rather than letting the column scroll. */
+  @media (max-height: 620px){
+    .wordmark{width:min(280px,72vw)}
+    .heroOrb{width:min(200px,30dvh,52vw)}
+    .heroOrb span{font-size:clamp(17px,5.4vw,24px)}
+    .modeIcon{width:40px;height:40px}
+    .modeText{font-size:15px}
   }
   @media (max-height: 520px){
     :root{--size:min(86vw,46dvh,420px)}
