@@ -401,8 +401,10 @@ function endGame(won,reason){
   if(isNewBest){BESTS[G.mode.key]=G.score;saveBests();}
   els.quitDialog.classList.add('hidden');
   els.machine.classList.add('hidden');els.hud.classList.add('hidden');
-  els.rules.classList.add('hidden');els.catTag.classList.add('hidden');els.exitBtn.classList.add('hidden');
+  els.rules.classList.add('hidden');els.catTag.classList.add('hidden');
   els.musicBtn.classList.add('hidden');
+  // Back arrow stays put on the results screen; its handler routes on phase.
+  els.exitBtn.classList.remove('hidden');
   $('overTitle').textContent=won?'YOU BEAT ALL 240! 🏆':'MACHINE WINS';
   $('modeBadge').textContent=(G.mode.key==='classic'?'RANDOM':G.mode.label)+' MODE';
   $('failReason').textContent=won?'':(reason||'');
@@ -471,7 +473,11 @@ function quitToMenu(){
   els.start.classList.remove('hidden');
   showModeHome();
 }
-els.exitBtn.addEventListener('click',openQuitDialog);
+els.exitBtn.addEventListener('click',()=>{
+  // On the results screen the arrow goes straight back to the menu; mid-run it asks first.
+  if(!els.over.classList.contains('hidden')){returnToMainMenu();return;}
+  openQuitDialog();
+});
 els.stayBtn.addEventListener('click',closeQuitDialog);
 els.quitBtn.addEventListener('click',quitToMenu);
 els.gradeSelectBtn.addEventListener('click',showGradeModes);

@@ -7,7 +7,7 @@
     --grid:#3EEBFF;               /* synthwave-theme perspective grid line color */
     --amber:#FFA23E; --ok:#33D6A6; --bad:#FF4568;
     --ink:#FFF4F8; --dim:#CDA0C7;
-    --size:min(70vw,52dvh,420px); /* machine diameter — 70vw puts the bezel at ~54% of width, per the board */
+    --size:min(76vw,52dvh,420px); /* machine diameter — 76vw puts the dash ring at ~73% of width, per the board */
     --machine-offset:-2dvh;
 
     /* ===== BACKGROUND DECOR CONFIG — every knob for position/size/z-index lives here ===== */
@@ -295,18 +295,18 @@
   #promptEmoji{font-size:clamp(16px,calc(var(--size) * 0.14),52px);line-height:1;min-height:1em;
     filter:drop-shadow(0 0 14px rgba(255,255,255,.35))}
   #promptText{font-weight:700;text-align:center;color:#fff;
-    font-size:clamp(13px,calc(var(--size) * 0.062),22px);letter-spacing:.06em;line-height:1.35;
+    font-size:clamp(15px,calc(var(--size) * 0.108),36px);letter-spacing:.06em;line-height:1.25;
     text-shadow:0 2px 4px #000,0 0 10px rgba(255,255,255,.62),0 0 28px color-mix(in srgb, var(--accent) 68%, transparent);
     max-width:100%;text-wrap:balance}
   #promptSub{font-family:'Quantico',ui-monospace,monospace;font-size:clamp(9px,calc(var(--size) * 0.03),11px);color:#F3A8DC;
     letter-spacing:.18em;font-weight:700;min-height:1em;text-align:center;text-shadow:0 1px 3px #000;transition:color .8s}
   #btn.longPrompt{gap:6px;padding:6%}
   #btn.longPrompt #promptEmoji{font-size:clamp(24px,calc(var(--size) * .1),40px)}
-  #btn.longPrompt #promptText{font-size:clamp(12px,calc(var(--size) * .046),17px);letter-spacing:.025em;line-height:1.18;max-width:96%;overflow-wrap:break-word}
+  #btn.longPrompt #promptText{font-size:clamp(13px,calc(var(--size) * .07),25px);letter-spacing:.025em;line-height:1.18;max-width:96%;overflow-wrap:break-word}
   #btn.longPrompt #promptSub{font-size:clamp(8px,calc(var(--size) * .025),10px);letter-spacing:.14em}
   #btn.veryLongPrompt{gap:4px;padding:4%}
   #btn.veryLongPrompt #promptEmoji{font-size:clamp(18px,calc(var(--size) * .078),30px)}
-  #btn.veryLongPrompt #promptText{font-size:clamp(10px,calc(var(--size) * .037),14px);letter-spacing:.01em;line-height:1.12}
+  #btn.veryLongPrompt #promptText{font-size:clamp(11px,calc(var(--size) * .052),19px);letter-spacing:.01em;line-height:1.12}
   #btn.veryLongPrompt #promptSub{font-size:8px;letter-spacing:.1em}
   #holdBar{width:60%;height:6px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden;
     visibility:hidden}
@@ -397,10 +397,12 @@
     text-shadow:0 0 12px color-mix(in srgb, var(--orb-ring) 45%, transparent)}
   .chev{flex:none;font-size:24px;font-weight:700;line-height:1;color:var(--orb-ring);
     text-shadow:0 0 10px color-mix(in srgb, var(--orb-ring) 60%, transparent)}
-  .overlay h1{font-size:clamp(28px,8.4vw,44px);font-weight:700;letter-spacing:.04em;line-height:1.1;
-    background:linear-gradient(90deg, var(--accent), var(--sun));-webkit-background-clip:text;background-clip:text;color:transparent;
-    text-shadow:0 0 26px color-mix(in srgb, var(--accent) 55%, transparent)}
-  .overlay h1 .know{-webkit-text-fill-color:var(--amber);color:var(--amber);text-shadow:0 0 24px rgba(255,162,62,.8)}
+  .overlay h1{font-style:italic;font-weight:700;line-height:.94;letter-spacing:.01em;
+    font-size:clamp(30px,min(13.5vw,7dvh),64px);text-align:center;
+    background:linear-gradient(104deg,#F23BFF 0%,#FF4BA5 50%,#FF9138 100%);
+    -webkit-background-clip:text;background-clip:text;
+    color:transparent;-webkit-text-fill-color:transparent;
+    filter:drop-shadow(0 0 18px color-mix(in srgb, var(--orb-ring) 50%, transparent))}
   .tagline{color:#F0DCF5;font-size:clamp(9px,2.9vw,15px);letter-spacing:.08em;line-height:1.5;
     white-space:nowrap;text-shadow:0 2px 4px rgba(0,0,0,.9),0 0 12px rgba(0,0,0,.65)}
   /* Gaps read off the design board rather than one uniform rhythm. */
@@ -443,19 +445,36 @@
     padding:15px 44px;cursor:pointer;box-shadow:0 0 34px rgba(255,120,73,.55),inset 0 2px 0 rgba(255,255,255,.5);
     transition:transform .08s}
   .bigBtn:active{transform:scale(.95)}
-  .stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 28px;justify-items:center;width:min(320px,86vw)}
-  .stat .hudLabel{text-align:center}
-  .stat .hudVal{font-size:26px;text-align:center;color:var(--accent-soft)}
-  #modeBadge{padding:5px 14px;border-radius:999px;color:var(--grid);font-size:11px;font-weight:700;
-    letter-spacing:.14em;border:1px solid color-mix(in srgb,var(--grid) 48%,transparent);background:rgba(8,4,18,.64)}
-  #recordStatus{min-height:1.2em;font-size:13px;font-weight:700;letter-spacing:.1em;color:var(--accent-soft)}
-  #recordStatus.newBest{color:var(--amber);text-shadow:0 0 12px rgba(255,162,62,.7)}
-  .overActions{display:flex;gap:10px;width:min(360px,88vw)}
-  .overActions .bigBtn{flex:1;padding:14px 18px}
-  #overMenuBtn{color:var(--ink);background:rgba(28,9,34,.88);border:1px solid var(--grid);
-    box-shadow:0 0 18px color-mix(in srgb,var(--grid) 25%,transparent)}
-  #failReason{color:var(--bad);font-weight:700;font-size:14px;letter-spacing:.06em;min-height:1em}
-  #funFact{color:var(--dim);font-size:13px;max-width:38ch;line-height:1.6}
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:0;width:min(430px,88vw);margin-top:1.8dvh}
+  .stat{padding:1.5dvh 6px}
+  .stat:nth-child(-n+2){border-bottom:1px solid rgba(186,130,225,.20)}
+  .stat:nth-child(odd){border-right:1px solid rgba(186,130,225,.20)}
+  .stat .hudLabel{text-align:center;font-style:normal;color:#B79AC9;
+    font-size:clamp(11px,3.2vw,14px);letter-spacing:.09em}
+  .stat .hudVal{font-size:clamp(24px,7.6vw,36px);text-align:center;color:#D8A6FF;
+    text-shadow:0 0 16px rgba(199,125,255,.45)}
+  #modeBadge{margin-top:1.6dvh;padding:8px 24px;border-radius:999px;color:#EBD6F5;
+    font-size:clamp(11px,3.2vw,14px);font-weight:700;letter-spacing:.12em;
+    border:2px solid var(--orb-dash);background:rgba(18,7,26,.72);
+    box-shadow:0 0 14px color-mix(in srgb,var(--orb-dash) 42%,transparent)}
+  #recordStatus{min-height:1.2em;font-size:clamp(13px,4vw,18px);font-weight:700;letter-spacing:.04em;
+    color:#C77DFF;text-shadow:0 0 14px rgba(199,125,255,.45)}
+  #recordStatus.newBest{color:var(--amber);text-shadow:0 0 14px rgba(255,162,62,.7)}
+  .overActions{display:flex;gap:12px;width:min(430px,88vw);margin-top:2.2dvh}
+  .overActions .bigBtn{flex:1;padding:15px 10px;font-style:italic;font-size:clamp(14px,4.2vw,19px);
+    letter-spacing:.04em;border-radius:14px}
+  #againBtn{background:linear-gradient(135deg,#FF9A5C 0%,#FF5C8A 100%);color:#2C0912;
+    box-shadow:0 0 22px rgba(255,110,130,.45),inset 0 2px 0 rgba(255,255,255,.4)}
+  #overMenuBtn{color:#fff;background:rgba(18,7,26,.92);border:2px solid var(--orb-dash);
+    box-shadow:0 0 18px color-mix(in srgb,var(--orb-dash) 35%,transparent)}
+  #failReason{margin-top:1.8dvh;color:#FF6B87;font-weight:700;
+    font-size:clamp(12px,3.6vw,16px);letter-spacing:.05em;min-height:1em}
+  #funFact{margin-top:2dvh;width:min(430px,88vw);text-align:left;
+    border:2px solid #E8A33D;border-radius:14px;padding:11px 15px;background:rgba(24,11,5,.5);
+    color:#D6C1AE;font-size:clamp(11px,3.2vw,13px);line-height:1.5;
+    box-shadow:0 0 14px rgba(232,163,61,.16)}
+  #funFact b{display:block;color:#E8A33D;letter-spacing:.1em;
+    font-size:clamp(11px,3.2vw,13px);margin-bottom:5px}
   #funFact b{color:var(--amber)}
   .hidden{display:none!important}
 
@@ -492,12 +511,12 @@
     .modeText{font-size:15px}
   }
   @media (max-height: 520px){
-    :root{--size:min(70vw,42dvh,420px)}
+    :root{--size:min(76vw,42dvh,420px)}
   }
   /* Phone layout: reserve room for the HUD/rules and keep every control thumb-friendly. */
   @media (max-width: 480px){
     :root{
-      --size:min(68vw,48dvh,360px);
+      --size:min(74vw,48dvh,360px);
       --machine-offset:-5dvh;
       --skyline-height:clamp(60px,11vh,90px);
       --grid-cell:68px;
@@ -525,7 +544,7 @@
     .themeBtn{min-height:48px}
   }
   @media (max-width: 360px){
-    :root{--size:min(67vw,45dvh,320px)}
+    :root{--size:min(72vw,45dvh,320px)}
     .hudBox{padding:4px 6px}
     .chip{font-size:9px}
     .tagline br{display:none}
