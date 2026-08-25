@@ -377,23 +377,10 @@
   /* ===== START SCREEN (Figma "synthwave" board) ===== */
   .wordmark{width:min(330px,84vw);height:auto;display:block;
     filter:drop-shadow(0 0 20px color-mix(in srgb, var(--orb-ring) 42%, transparent))}
-  /* Decorative twin of the game orb: same rings, no countdown, fixed PRESS label. */
-  .heroOrb{position:relative;width:min(250px,42dvh,60vw);aspect-ratio:1;border-radius:50%;
-    display:grid;place-items:center;flex:none;
-    background:
-      radial-gradient(ellipse 39% 24% at 50% 29%, color-mix(in srgb, var(--orb-glow) 20%, transparent), transparent 72%),
-      radial-gradient(ellipse 39% 24% at 50% 74%, rgba(5,1,8,.55), transparent 72%),
-      radial-gradient(circle at 50% 50%, var(--orb-face-1) 0%, var(--orb-face-2) 60%, var(--orb-face-3) 100%);
-    border:2px solid var(--orb-bezel);
-    box-shadow:0 0 0 4px rgba(6,1,11,.42),0 8px 30px 6px rgba(4,0,9,.55),
-               0 0 22px color-mix(in srgb, var(--orb-bezel) 62%, transparent)}
-  .heroOrb::before{content:"";position:absolute;inset:5.5%;border-radius:50%;
-    border:2px solid var(--orb-ring);
-    box-shadow:0 0 12px color-mix(in srgb, var(--orb-ring) 70%, transparent),
-               inset 0 0 12px color-mix(in srgb, var(--orb-ring) 45%, transparent)}
-  .heroOrb span{font-weight:700;font-size:clamp(20px,6.4vw,32px);letter-spacing:.1em;color:#fff;
-    text-shadow:0 2px 4px #000,0 0 12px rgba(255,255,255,.6),
-                0 0 30px color-mix(in srgb, var(--orb-ring) 70%, transparent)}
+  /* The front-page orb is decorative, so it uses the Figma export directly -- baked "PRESS" and all.
+     (The in-game button can't: it hosts 240 different prompts.) Export is 320x304, not square. */
+  .heroOrb{width:min(250px,42dvh,60vw);height:auto;display:block;flex:none;
+    filter:drop-shadow(0 8px 26px rgba(4,0,9,.55))}
   .modeIcon{width:48px;height:48px;flex:none;object-fit:contain}
   .modeIcon.em{display:grid;place-items:center;font-size:30px}
   .modeText{flex:1;min-width:0;display:block;font-size:16px;letter-spacing:.03em;color:#fff;line-height:1.15;
@@ -478,7 +465,6 @@
   @media (max-height: 620px){
     .wordmark{width:min(280px,72vw)}
     .heroOrb{width:min(200px,30dvh,52vw)}
-    .heroOrb span{font-size:clamp(17px,5.4vw,24px)}
     .modeIcon{width:40px;height:40px}
     .modeText{font-size:15px}
   }
@@ -729,7 +715,7 @@
   <div class="overlay" id="startOverlay">
     <img class="wordmark" src="src/assets/logo-block.svg" width="328" height="114" alt="Press the Button">
     <div class="tagline">ONE BUTTON • FAST THINKING • CHOOSE YOUR MODE</div>
-    <div class="heroOrb" aria-hidden="true"><span>PRESS</span></div>
+    <img class="heroOrb" src="src/assets/hero-button.svg" width="320" height="304" alt="" aria-hidden="true">
     <div class="modeView" id="modeHome">
       <div class="diffRow">
         <button class="diffBtn" data-mode="classic">
