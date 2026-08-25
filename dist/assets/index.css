@@ -72,7 +72,7 @@
      is where the machine's base sits, the sun lands behind the button for free.
      Below the horizon the floor is CSS, so it can keep moving. */
   #bgArt{position:fixed;left:0;right:0;top:0;height:var(--horizon-y);z-index:0;pointer-events:none;
-    background:url("./assets/bg-sky-BwjUDoEu.webp") center bottom / cover no-repeat}
+    background:url("./bg-sky-BwjUDoEu.webp") center bottom / cover no-repeat}
   /* The art replaces every generated backdrop piece, in both themes. */
   #sun,#sunTint,#skyline,#blackhole,#hyperspace,#stars,.bolt{display:none!important}
   #bgFx{position:fixed;inset:0;z-index:0;transition:background 1s ease;

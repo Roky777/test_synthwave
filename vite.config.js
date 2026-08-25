@@ -72,7 +72,15 @@ const extractInlineCss = {
     const style = html.match(/<style>([\s\S]*?)<\/style>/);
     if (!style) throw new Error('Expected an inline style block in the built index.html');
 
-    await writeFile(cssPath, style[1]);
+    // The style block's url()s were emitted relative to index.html at the dist root, but this CSS
+    // is being moved into dist/assets/ — so './assets/x' would resolve to '/assets/assets/x'.
+    // Re-base them to sit alongside the stylesheet.
+    const css = style[1].replace(/url\((\s*['"]?)\.\/assets\//g, 'url($1./');
+    if (/url\(\s*['"]?\.\/assets\//.test(css)) {
+      throw new Error('extract-inline-css: failed to re-base asset URLs for dist/assets/index.css');
+    }
+
+    await writeFile(cssPath, css);
     await writeFile(
       htmlPath,
       html.replace(style[0], '<link rel="stylesheet" href="./assets/index.css">'),
