@@ -49,7 +49,7 @@
     --grid-speed:9s;                      /* lower = faster scroll; kept slow so the floor drifts rather than draws the eye */
     --grid-z:1;
     --floor-line:#3B7BFF;      /* grid lines, sampled from bg.png */
-    --horizon-line:#F881FD;    /* horizon glow, sampled from bg.png */
+    --horizon-line:#5B8CFF;    /* seam glow — blue, no pink anywhere */
 
     /* ===== ORB BUTTON — from Figma export src/assets/layered-button-orb.svg =====
        Diameters are % of --size, derived from the export's 272px canvas (half = 136):
@@ -188,19 +188,16 @@
     top:var(--horizon-y);z-index:var(--grid-z);pointer-events:none;
     overflow:hidden;opacity:1;transition:opacity .6s;
     perspective:var(--grid-perspective);
-    background:linear-gradient(180deg,
-      rgba(248,129,253,.22) 0%, rgba(112,38,150,.34) 10%,
-      #1A0E5E 44%, #02127E 100%);
-    border-top:2px solid var(--horizon-line);
-    /* the upward half of this glow is what melts the seam into the sky image above */
-    box-shadow:0 0 14px var(--horizon-line),
-               0 -8px 54px color-mix(in srgb,var(--horizon-line) 42%,transparent)}
+    /* the art's own lower half — mountains, glow and grid — so the scene is one continuous image */
+    background:url("src/assets/bg-floor.webp") center top / cover no-repeat;
+    /* soft blue bleed upward so the two crops read as one piece, not two stacked images */
+    box-shadow:0 -6px 46px color-mix(in srgb,var(--horizon-line) 30%,transparent)}
   #grid::before{content:"";position:absolute;left:-100%;right:-100%;top:0;height:150%;
     background-image:
       repeating-linear-gradient(to right, var(--floor-line) 0 1.5px, transparent 1.5px var(--grid-cell)),
       repeating-linear-gradient(to bottom, var(--floor-line) 0 1.5px, transparent 1.5px var(--grid-cell));
-    background-size:var(--grid-cell) var(--grid-cell);opacity:.85;
-    filter:drop-shadow(0 0 3px var(--floor-line)) drop-shadow(0 0 9px color-mix(in srgb,var(--floor-line) 60%,transparent));
+    background-size:var(--grid-cell) var(--grid-cell);opacity:.22;
+    filter:drop-shadow(0 0 4px color-mix(in srgb,var(--floor-line) 70%,transparent));
     transform:rotateX(var(--grid-rotate));transform-origin:50% 0%;
     animation:gridMove var(--grid-speed) linear infinite}
   @keyframes gridMove{from{background-position-y:0}to{background-position-y:var(--grid-cell)}}
