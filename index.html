@@ -300,24 +300,31 @@
   #btn.flashOk{box-shadow:inset 0 0 0 2px var(--ok),inset 0 -14px 34px rgba(0,0,0,.6),0 0 90px rgba(51,214,166,.6)}
   #btn.flashBad{box-shadow:inset 0 0 0 2px var(--bad),inset 0 -14px 34px rgba(0,0,0,.6),0 0 100px rgba(255,69,104,.7)}
   #btn.holding{box-shadow:inset 0 0 0 3px var(--amber),inset 0 -14px 34px rgba(0,0,0,.6),0 0 90px rgba(255,162,62,.6)}
-  #promptEmoji{font-size:calc(clamp(16px,calc(var(--size) * 0.14),52px) * var(--prompt-scale,1));line-height:1;min-height:1em;
+  #promptEmoji{font-size:calc(clamp(16px,calc(var(--size) * 0.14),52px) * var(--prompt-scale,1));line-height:1;
     filter:drop-shadow(0 0 14px rgba(255,255,255,.35))}
+  /* Most prompts carry no emoji and no sub-label. Reserving a line for them (min-height:1em) left
+     unequal dead space above and below the text, so it could never optically centre in the circle. */
+  #promptEmoji:empty,#promptSub:empty{display:none}
   #promptText{font-weight:700;text-align:center;color:#fff;
     font-size:calc(clamp(15px,calc(var(--size) * 0.108),36px) * var(--prompt-scale,1));letter-spacing:.06em;line-height:1.25;
     text-shadow:0 2px 4px #000,0 0 10px rgba(255,255,255,.62),0 0 28px color-mix(in srgb, var(--accent) 68%, transparent);
-    max-width:100%;text-wrap:balance}
+    max-width:88%;text-wrap:balance;overflow-wrap:normal}
   #promptSub{font-family:'Quantico',ui-monospace,monospace;font-size:calc(clamp(9px,calc(var(--size) * 0.03),11px) * var(--prompt-scale,1));color:#F3A8DC;
-    letter-spacing:.18em;font-weight:700;min-height:1em;text-align:center;text-shadow:0 1px 3px #000;transition:color .8s}
+    letter-spacing:.18em;font-weight:700;text-align:center;text-shadow:0 1px 3px #000;transition:color .8s}
   #btn.longPrompt{gap:6px;padding:6%}
   #btn.longPrompt #promptEmoji{font-size:calc(clamp(24px,calc(var(--size) * .1),40px) * var(--prompt-scale,1))}
-  #btn.longPrompt #promptText{font-size:calc(clamp(13px,calc(var(--size) * .07),25px) * var(--prompt-scale,1));letter-spacing:.025em;line-height:1.18;max-width:96%;overflow-wrap:break-word}
+  #btn.longPrompt #promptText{font-size:calc(clamp(13px,calc(var(--size) * .07),25px) * var(--prompt-scale,1));letter-spacing:.025em;line-height:1.18;max-width:82%;overflow-wrap:normal}
   #btn.longPrompt #promptSub{font-size:calc(clamp(8px,calc(var(--size) * .025),10px) * var(--prompt-scale,1));letter-spacing:.14em}
   #btn.veryLongPrompt{gap:4px;padding:4%}
   #btn.veryLongPrompt #promptEmoji{font-size:calc(clamp(18px,calc(var(--size) * .078),30px) * var(--prompt-scale,1))}
-  #btn.veryLongPrompt #promptText{font-size:calc(clamp(11px,calc(var(--size) * .052),19px) * var(--prompt-scale,1));letter-spacing:.01em;line-height:1.12}
+  #btn.veryLongPrompt #promptText{font-size:calc(clamp(11px,calc(var(--size) * .052),19px) * var(--prompt-scale,1));letter-spacing:.01em;line-height:1.12;max-width:76%}
   #btn.veryLongPrompt #promptSub{font-size:calc(8px * var(--prompt-scale,1));letter-spacing:.1em}
+  /* display, not visibility — hidden still occupies its box and one flex gap. */
   #holdBar{width:60%;height:6px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden;
-    visibility:hidden}
+    display:none}
+  #btn.holdPrompt #holdBar{display:block}
+  /* Last resort once shrinking has bottomed out — see fitPromptToFace(). */
+  #btn.breakWords #promptText{overflow-wrap:break-word}
   #holdFill{height:100%;width:0%;background:var(--amber);border-radius:3px}
 
   /* RULE CHIPS */

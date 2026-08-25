@@ -280,12 +280,18 @@ function countGraphemes(value){
 // whole stack until it actually clears the button face, whatever the copy turns out to be.
 function fitPromptToFace(){
   const b=els.btn;
+  b.classList.remove('breakWords');
   b.style.setProperty('--prompt-scale','1');
+  // Too tall, or a word too wide for the line — either one means shrink.
+  const overflows=()=>b.scrollHeight>b.clientHeight+1||els.text.scrollWidth>els.text.clientWidth+1;
   let scale=1;
-  while(scale>0.45 && b.scrollHeight>b.clientHeight+1){
+  while(scale>0.45 && overflows()){
     scale-=0.07;
     b.style.setProperty('--prompt-scale',scale.toFixed(3));
   }
+  // Shrinking is always preferable to snapping a word in half, so this only ever applies to copy
+  // that still doesn't fit at the floor.
+  if(overflows())b.classList.add('breakWords');
 }
 
 function showPrompt(){
@@ -310,7 +316,7 @@ function showPrompt(){
   els.emoji.classList.toggle('denseEmoji',emojiCount>7);
   els.emoji.style.fontSize=it.big?'calc(clamp(44px,13vw,68px) * var(--prompt-scale,1))':'';
   els.sub.textContent=it.sub||'';
-  els.holdBar.style.visibility = it.type==='hold'?'visible':'hidden';
+  els.btn.classList.toggle('holdPrompt',it.type==='hold');
   els.holdFill.style.width='0%';
   fitPromptToFace();
   applyFx(it.fx||null);
@@ -519,7 +525,7 @@ function startGame(modeKey){
   els.rules.classList.remove('hidden');els.exitBtn.classList.remove('hidden');
   playThemeMusic();syncMusicButton();
   els.catTag.classList.toggle('hidden', !mode.features.dynamicAccent);
-  els.btn.classList.remove('longPrompt','veryLongPrompt');
+  els.btn.classList.remove('longPrompt','veryLongPrompt','holdPrompt','breakWords');
   els.btn.style.setProperty('--prompt-scale','1');
   els.emoji.classList.remove('manyEmoji','denseEmoji');
   els.text.textContent='GET READY…';els.emoji.textContent=mode.emoji;els.sub.textContent='';
