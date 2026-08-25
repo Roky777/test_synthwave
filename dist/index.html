@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>PRESS TO KNOW — The GK Button</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./assets/index.css">
+  <script type="module" crossorigin src="./assets/index-Dr3ITs3a.js"></script>
+</head>
+<body>
+<audio id="themeMusic" preload="auto"></audio>
+<div id="bgFx"></div>
+<div id="stars"></div>
+<div id="hyperspace" aria-hidden="true"></div>
+<div id="blackhole"></div>
+<div id="sun"></div>
+<div id="sunTint"></div>
+<svg id="skyline" viewBox="0 0 600 120" preserveAspectRatio="none" aria-hidden="true">
+  <polyline points="0,120 40,68 80,96 130,52 170,90 210,74 250,120" fill="none" stroke="currentColor" stroke-width="2"/>
+  <polyline points="600,120 560,66 520,92 470,48 430,88 390,70 350,120" fill="none" stroke="currentColor" stroke-width="2"/>
+  <g fill="none" stroke="currentColor" stroke-width="1.5">
+    <rect x="8" y="82" width="26" height="38"/>
+    <rect x="38" y="65" width="34" height="55"/>
+    <rect x="77" y="88" width="22" height="32"/>
+    <rect x="104" y="72" width="38" height="48"/>
+    <rect x="147" y="91" width="28" height="29"/>
+    <rect x="180" y="78" width="31" height="42"/>
+    <rect x="394" y="82" width="32" height="38"/>
+    <rect x="431" y="69" width="27" height="51"/>
+    <rect x="463" y="88" width="38" height="32"/>
+    <rect x="506" y="74" width="25" height="46"/>
+    <rect x="536" y="62" width="35" height="58"/>
+    <rect x="576" y="86" width="20" height="34"/>
+  </g>
+  <g fill="none" stroke="currentColor" stroke-width="1.6">
+    <rect x="252" y="55" width="24" height="65"/>
+    <rect x="280" y="28" width="20" height="92"/>
+    <rect x="304" y="60" width="28" height="60"/>
+    <rect x="336" y="18" width="18" height="102"/>
+    <rect x="358" y="46" width="24" height="74"/>
+    <line x1="288" y1="42" x2="288" y2="116"/>
+    <line x1="312" y1="70" x2="326" y2="70"/>
+    <line x1="343" y1="32" x2="343" y2="116"/>
+    <line x1="366" y1="60" x2="374" y2="60"/>
+  </g>
+</svg>
+<div id="grid"></div>
+<div class="bolt b1"></div><div class="bolt b2"></div><div class="bolt b3"></div><div class="bolt b4"></div>
+
+<div id="app">
+  <div id="hud" class="hidden">
+    <div class="hudBox"><div class="hudLabel">SCORE</div><div class="hudVal" id="score">0</div></div>
+    <div class="hudBox" id="streakBox"><div class="hudLabel">STREAK</div><div class="hudVal" id="streak">×0</div></div>
+    <div class="hudBox" id="livesBox"><div class="hudLabel">LIVES</div><div class="hudVal" id="hearts">❤️❤️❤️</div></div>
+  </div>
+  <div id="catTag" class="hidden"></div>
+  <button id="exitBtn" class="hidden" aria-label="Return to main menu" title="Return to main menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6"/></svg></button>
+  <button id="musicBtn" class="hidden" aria-label="Mute music" title="Mute music"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor" stroke="none"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg></button>
+
+  <div id="banner"></div>
+
+  <div id="quitDialog" class="hidden" role="dialog" aria-modal="true" aria-labelledby="quitTitle">
+    <div class="quitCard">
+      <h2 id="quitTitle">EXIT THIS RUN?</h2>
+      <p>Your current score and progress will be lost.</p>
+      <div class="quitActions">
+        <button id="stayBtn">KEEP PLAYING</button>
+        <button id="quitBtn">MAIN MENU</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="machine" class="hidden">
+    <svg id="ringSvg" viewBox="0 0 100 100"></svg>
+    <button id="btn" aria-label="The Button">
+      <div id="promptEmoji"></div>
+      <div id="promptText">PRESS</div>
+      <div id="promptSub"></div>
+      <div id="holdBar"><div id="holdFill"></div></div>
+    </button>
+  </div>
+
+  <div id="rules" class="hidden"></div>
+
+  <div id="scare"><div id="scareEmoji">👻</div><div id="scareText">DON'T PRESS!!</div></div>
+
+  <!-- START / MODE SELECT -->
+  <div class="overlay" id="startOverlay">
+    <img class="wordmark" src="./assets/logo-block-Pw4mIK_R.svg" width="328" height="114" alt="Press the Button">
+    <div class="tagline">ONE BUTTON • FAST THINKING • CHOOSE YOUR MODE</div>
+    <div class="heroOrb" aria-hidden="true"><span>PRESS</span></div>
+    <div class="modeView" id="modeHome">
+      <div class="diffRow">
+        <button class="diffBtn" data-mode="classic">
+          <img class="modeIcon" src="./assets/dice-CV1sE_Ry.png" width="48" height="48" alt="">
+          <span class="modeText">RANDOM MODE<small>Pure reflex. No patterns. No mercy.</small></span>
+          <span class="chev" aria-hidden="true">›</span>
+        </button>
+        <button class="diffBtn" id="gradeSelectBtn">
+          <img class="modeIcon" src="./assets/books-BvMh8mNU.png" width="48" height="48" alt="">
+          <span class="modeText">GRADE-SPECIFIC MODE<small>Questions matched to your classes.</small></span>
+          <span class="chev" aria-hidden="true">›</span>
+        </button>
+      </div>
+    </div>
+    <div class="modeView hidden" id="gradeView">
+      <div class="modeViewTitle">SELECT YOUR GRADE RANGE</div>
+      <div class="diffRow">
+        <button class="diffBtn" data-mode="explorer">
+          <span class="modeIcon em">🧒</span>
+          <span class="modeText">EXPLORER<small>Classes 4–6 · friendly pace</small></span>
+          <span class="chev" aria-hidden="true">›</span>
+        </button>
+        <button class="diffBtn" data-mode="challenger">
+          <span class="modeIcon em">🧠</span>
+          <span class="modeText">CHALLENGER<small>Classes 7–10 · the real deal</small></span>
+          <span class="chev" aria-hidden="true">›</span>
+        </button>
+        <button class="diffBtn" data-mode="mastermind">
+          <span class="modeIcon em">🎓</span>
+          <span class="modeText">MASTERMIND<small>Classes 11–12 · no mercy</small></span>
+          <span class="chev" aria-hidden="true">›</span>
+        </button>
+      </div>
+      <button class="modeBack" id="gradeBackBtn">← BACK</button>
+    </div>
+    <div class="themeRow" role="group" aria-label="Background theme">
+      <button class="themeBtn" data-theme-btn="nebula"><img src="./assets/nebula-x20aFVfF.png" width="32" height="32" alt=""><span>NEBULA</span></button>
+      <button class="themeBtn" data-theme-btn="synthwave"><img src="./assets/synthwave-B8UDWxdz.png" width="32" height="32" alt=""><span>SYNTHWAVE</span></button>
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="overOverlay">
+    <h1 id="overTitle">MACHINE WINS</h1>
+    <div id="modeBadge">RANDOM MODE</div>
+    <div id="failReason"></div>
+    <div id="recordStatus"></div>
+    <div class="stats">
+      <div class="stat"><div class="hudLabel">SCORE</div><div class="hudVal" id="finalScore">0</div></div>
+      <div class="stat"><div class="hudLabel">SOLVED</div><div class="hudVal" id="finalSolved">0</div></div>
+      <div class="stat"><div class="hudLabel">BEST STREAK</div><div class="hudVal" id="finalStreak">0</div></div>
+      <div class="stat"><div class="hudLabel">PREVIOUS BEST</div><div class="hudVal" id="bestScore">0</div></div>
+    </div>
+    <div id="funFact"></div>
+    <div class="overActions">
+      <button class="bigBtn" id="againBtn">PLAY AGAIN</button>
+      <button class="bigBtn" id="overMenuBtn">MAIN MENU</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

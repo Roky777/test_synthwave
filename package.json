@@ -1,0 +1,23 @@
+{
+  "name": "will-you-press",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "PRESS TO KNOW — one-button GK reflex game",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0",
+    "http-server": "^14.1.1",
+    "vite": "^5.4.21",
+    "vitest": "^2.1.0"
+  }
+}

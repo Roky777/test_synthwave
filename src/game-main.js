@@ -1,0 +1,525 @@
+/* ============================================================
+   PRESS TO KNOW — DOM wiring & game loop
+   ============================================================ */
+import {
+  CAT_META, MODES, TOTAL, rnd, computePoints, buildSequence, OVER_FACTS, loadGameData,
+} from './game-logic.js';
+
+const AUDIO_BUNDLE_URL=new URL('assets/theme-audio.wasm',document.baseURI).href;
+async function loadThemeTracks(){
+  try{
+    const response=await fetch(AUDIO_BUNDLE_URL);
+    if(!response.ok)throw new Error(`Unable to load theme audio (${response.status})`);
+    let module;
+    try{module=await WebAssembly.compileStreaming(Promise.resolve(response.clone()));}
+    catch{module=await WebAssembly.compile(await response.arrayBuffer());}
+    const track=name=>{
+      const bytes=WebAssembly.Module.customSections(module,name)[0];
+      if(!bytes)throw new Error(`Missing audio track in WASM bundle: ${name}`);
+      return URL.createObjectURL(new Blob([bytes],{type:'audio/mpeg'}));
+    };
+    return {
+      synthwave:track('echoes.mp3'),
+      nebula:track('Cornfieldchase.mp3'),
+    };
+  }catch(error){
+    // Keeps plain static-source development usable; production always emits the WASM bundle.
+    console.warn('WASM audio bundle unavailable; using source audio files.',error);
+    return {
+      synthwave:new URL('src/assets/audio/echoes.mp3',document.baseURI).href,
+      nebula:new URL('src/assets/audio/Cornfieldchase.mp3',document.baseURI).href,
+    };
+  }
+}
+
+async function main(){
+await loadGameData();
+const THEME_TRACKS=await loadThemeTracks();
+
+/* ------------------- AUDIO ------------------- */
+let AC=null;
+function beep(freq,t=0.09,type='square',gain=0.05,when=0){
+  try{
+    AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    const o=AC.createOscillator(),g=AC.createGain();
+    o.type=type;o.frequency.value=freq;
+    g.gain.setValueAtTime(gain,AC.currentTime+when);
+    g.gain.exponentialRampToValueAtTime(0.0001,AC.currentTime+when+t);
+    o.connect(g).connect(AC.destination);
+    o.start(AC.currentTime+when);o.stop(AC.currentTime+when+t+0.02);
+  }catch(e){}
+}
+const sOk=()=>{beep(660,.08,'square',.05);beep(990,.12,'square',.05,.08);};
+const sBad=()=>{beep(160,.28,'sawtooth',.07);beep(110,.3,'sawtooth',.06,.05);};
+const sTick=()=>beep(1200,.03,'square',.03);
+const sTap=()=>beep(440,.04,'square',.04);
+const sScare=()=>{beep(70,.5,'sawtooth',.12);beep(55,.6,'sawtooth',.1,.05);beep(900,.15,'square',.06,.02);};
+
+/* ------------------- GAME ------------------- */
+const $=id=>document.getElementById(id);
+const els={app:$('app'),hud:$('hud'),machine:$('machine'),btn:$('btn'),ring:$('ringSvg'),
+ text:$('promptText'),emoji:$('promptEmoji'),sub:$('promptSub'),
+ holdBar:$('holdBar'),holdFill:$('holdFill'),
+ score:$('score'),streak:$('streak'),hearts:$('hearts'),banner:$('banner'),rules:$('rules'),
+ catTag:$('catTag'),scareEl:$('scare'),scareEmoji:$('scareEmoji'),scareText:$('scareText'),
+ start:$('startOverlay'),over:$('overOverlay'),exitBtn:$('exitBtn'),
+ musicBtn:$('musicBtn'),themeMusic:$('themeMusic'),quitDialog:$('quitDialog'),
+ stayBtn:$('stayBtn'),quitBtn:$('quitBtn'),modeHome:$('modeHome'),gradeView:$('gradeView'),
+ gradeSelectBtn:$('gradeSelectBtn'),gradeBackBtn:$('gradeBackBtn'),overMenuBtn:$('overMenuBtn')};
+
+const hyperspace=$('hyperspace');
+for(let i=0;i<32;i++){
+  const trail=document.createElement('i');
+  trail.style.setProperty('--trail-angle',`${(i*137.5+(i%4)*7)%360}deg`);
+  trail.style.setProperty('--trail-start',`${4+(i%6)*2}vmin`);
+  trail.style.setProperty('--trail-length',`clamp(24px,${5+(i%5)*1.2}vmin,92px)`);
+  trail.style.setProperty('--trail-width',`${1+(i%3)*.55}px`);
+  trail.style.setProperty('--trail-duration',`${1.35+(i%7)*.12}s`);
+  trail.style.setProperty('--trail-delay',`${-(i%16)*.11}s`);
+  hyperspace.appendChild(trail);
+}
+
+/* ------------------- BACKGROUND THEME ------------------- */
+const BG_THEME_KEY='wyp-bg-theme';
+const themeBtns=document.querySelectorAll('.themeBtn');
+const THEME_TRACK_START={synthwave:0,nebula:32};
+let musicMuted=false;
+let musicSource=null,musicFilter=null,musicGain=null,pendingMusicFade=false;
+els.themeMusic.volume=.05;
+function ensureMusicAudioGraph(){
+  if(musicFilter)return;
+  try{
+    AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    musicSource=AC.createMediaElementSource(els.themeMusic);
+    musicFilter=AC.createBiquadFilter();
+    musicFilter.type='lowpass';
+    musicFilter.frequency.value=18000;
+    musicFilter.Q.value=.7;
+    musicGain=AC.createGain();
+    musicSource.connect(musicFilter).connect(musicGain).connect(AC.destination);
+  }catch(e){}
+}
+function playThemeMusic(){
+  const theme=document.documentElement.dataset.theme;
+  if(!THEME_TRACKS[theme])return;
+  ensureMusicAudioGraph();
+  if(AC?.state==='suspended')AC.resume().catch(()=>{});
+  const start=THEME_TRACK_START[theme]||0;
+  if(els.themeMusic.readyState>0&&els.themeMusic.currentTime<start)els.themeMusic.currentTime=start;
+  if(pendingMusicFade&&musicGain){
+    const now=AC.currentTime;
+    musicGain.gain.cancelScheduledValues(now);
+    musicGain.gain.setValueAtTime(.001,now);
+    musicGain.gain.exponentialRampToValueAtTime(1,now+1.2);
+    pendingMusicFade=false;
+  }
+  els.themeMusic.muted=musicMuted;
+  els.themeMusic.play().catch(()=>{});
+}
+function distortThemeMusic(){
+  if(!musicFilter||els.themeMusic.paused||musicMuted)return;
+  const now=AC.currentTime,duration=1.45,curve=new Float32Array(61);
+  // One smooth crest → trough → crest cycle: open, muffled, then fully recovered.
+  for(let i=0;i<curve.length;i++){
+    const phase=i/(curve.length-1);
+    const wave=(1+Math.cos(phase*Math.PI*2))/2;
+    curve[i]=500+17500*Math.pow(wave,1.7);
+  }
+  musicFilter.frequency.cancelScheduledValues(now);
+  musicFilter.Q.cancelScheduledValues(now);
+  musicFilter.frequency.setValueCurveAtTime(curve,now,duration);
+  musicFilter.Q.setValueAtTime(7,now);
+  musicFilter.Q.exponentialRampToValueAtTime(.7,now+duration);
+}
+function syncMusicButton(){
+  const inGame=!els.hud.classList.contains('hidden');
+  els.musicBtn.classList.toggle('hidden',!inGame);
+  els.musicBtn.classList.toggle('muted',musicMuted);
+  els.musicBtn.setAttribute('aria-label',musicMuted?'Unmute music':'Mute music');
+  els.musicBtn.title=musicMuted?'Unmute music':'Mute music';
+}
+function applyBgTheme(theme,userInitiated=false){
+  document.documentElement.dataset.theme=theme;
+  themeBtns.forEach(b=>b.classList.toggle('active', b.dataset.themeBtn===theme));
+  const track=THEME_TRACKS[theme];
+  if(track&&els.themeMusic.getAttribute('src')!==track){
+    els.themeMusic.pause();
+    els.themeMusic.setAttribute('src',track);
+    els.themeMusic.load();
+    pendingMusicFade=true;
+  }
+  if(userInitiated)playThemeMusic();
+  syncMusicButton();
+  try{localStorage.setItem(BG_THEME_KEY,theme);}catch{}
+}
+themeBtns.forEach(b=>b.addEventListener('click',()=>applyBgTheme(b.dataset.themeBtn,true)));
+els.musicBtn.addEventListener('click',()=>{
+  musicMuted=!musicMuted;
+  els.themeMusic.muted=musicMuted;
+  if(!musicMuted)playThemeMusic();
+  syncMusicButton();
+});
+els.themeMusic.addEventListener('loadedmetadata',()=>{
+  const start=THEME_TRACK_START[document.documentElement.dataset.theme]||0;
+  if(els.themeMusic.currentTime<start)els.themeMusic.currentTime=start;
+});
+els.themeMusic.addEventListener('ended',()=>{
+  els.themeMusic.currentTime=THEME_TRACK_START[document.documentElement.dataset.theme]||0;
+  playThemeMusic();
+});
+let savedTheme='synthwave';
+try{savedTheme=localStorage.getItem(BG_THEME_KEY)||'synthwave';}catch{}
+applyBgTheme(savedTheme);
+playThemeMusic();
+// Browsers block autoplay until interaction; these handlers guarantee playback on the first gesture.
+document.addEventListener('pointerdown',playThemeMusic,{once:true});
+document.addEventListener('keydown',playThemeMusic,{once:true});
+
+const SEGS=30; let segEls=[];
+(function buildRing(){
+  // Screen 3 draws the countdown as ~30 chunky rounded dashes in a ring clear of the orb's cyan
+  // bezel. Each dash is a round-capped arc stroke rather than a filled quad, which is what gives
+  // the rounded ends; RING_R/RING_W are in the 100-unit viewBox that spans --size.
+  const NS='http://www.w3.org/2000/svg',cx=50,cy=50,RING_R=46.4,RING_W=4.2,gap=3.4;
+  for(let i=0;i<SEGS;i++){
+    const a0=(i/SEGS)*2*Math.PI+gap*Math.PI/180,a1=((i+1)/SEGS)*2*Math.PI-gap*Math.PI/180;
+    const p=document.createElementNS(NS,'path');
+    const x=a=>cx+RING_R*Math.cos(a),y=a=>cy+RING_R*Math.sin(a);
+    p.setAttribute('d',`M${x(a0)},${y(a0)} A${RING_R},${RING_R} 0 0 1 ${x(a1)},${y(a1)}`);
+    p.setAttribute('fill','none');
+    p.setAttribute('stroke-width',RING_W);
+    p.setAttribute('stroke-linecap','round');
+    els.ring.appendChild(p);segEls.push(p);
+  }
+})();
+let curAccent='#FF3E9A';
+function paintRing(frac){
+  const lit=Math.ceil(frac*SEGS);
+  const col=frac>0.5?curAccent:frac>0.25?'#FFA23E':'#FF4568';
+  segEls.forEach((p,i)=>{
+    const active=i<lit;
+    // Lit dashes carry the category accent (violet in Classic, matching screen 3); spent ones fade back.
+    p.setAttribute('stroke',active?col:'rgba(178,75,243,.20)');
+    p.setAttribute('opacity',active?'1':'.85');
+  });
+}
+function setAccent(hex,label){
+  curAccent=hex;
+  document.documentElement.style.setProperty('--accent',hex);
+  document.documentElement.style.setProperty('--accent-soft',hex+'CC');
+  els.catTag.textContent='· '+label+' ·';
+}
+
+const RESULTS_KEY='wyp-results-v1';
+const EMPTY_BESTS={classic:0,explorer:0,challenger:0,mastermind:0};
+let BESTS={...EMPTY_BESTS};
+try{
+  const saved=JSON.parse(localStorage.getItem(RESULTS_KEY)||'null');
+  if(saved?.version===1&&saved.bestByMode)BESTS={...EMPTY_BESTS,...saved.bestByMode};
+}catch{}
+function saveBests(){
+  try{localStorage.setItem(RESULTS_KEY,JSON.stringify({version:1,bestByMode:BESTS}));}catch{}
+}
+
+let G=null;
+// Screen 3 shows lives as filled hearts plus hollow outlines for the ones spent.
+function setHearts(lives){
+  const n=Math.max(0,Math.min(3,lives));
+  els.hearts.innerHTML='<span class="heart">\u2665</span>'.repeat(n)
+    +'<span class="heart gone">\u2665</span>'.repeat(3-n);
+}
+
+function newGame(mode){
+  G={mode, seq:buildSequence(mode), i:0, score:0, streak:0, bestStreak:0, lives:3, solved:0,
+     presses:0, holdStart:0, holdDone:false, t0:0, dur:0, raf:0, scareTO:0, nextTO:0, endTO:0, phase:'idle'};
+  els.score.textContent='0';els.streak.textContent='×0';
+  setHearts(3);els.rules.innerHTML='';
+}
+
+function applyFx(fx){
+  els.machine.classList.toggle('tiny', fx==='tiny');
+  els.machine.style.transform = els.machine.classList.contains('tiny') ? '' : 'translate(0,0)';
+  if(fx==='runaway'){
+    let hops=0;
+    const hop=()=>{ if(G.phase!=='live'||hops>=2) {els.machine.style.transform='translate(0,0)';return;}
+      hops++;
+      const dx=(Math.random()*36-18), dy=(Math.random()*24-12);
+      els.machine.style.transform=`translate(${dx}vw ,${dy}vh)`.replace('vw ,','vw,');
+      setTimeout(hop, 750);
+    };
+    setTimeout(hop, 500);
+  }
+}
+
+function countGraphemes(value){
+  if(!value)return 0;
+  try{return [...new Intl.Segmenter(undefined,{granularity:'grapheme'}).segment(value)].filter(x=>x.segment.trim()).length;}
+  catch{return Array.from(value).filter(x=>x.trim()).length;}
+}
+
+function showPrompt(){
+  const it=G.seq[G.i];
+  if(!it){endGame(true);return;}
+  if(G.mode.features.dynamicAccent){
+    const meta=CAT_META[it.type]||CAT_META.simple;
+    setAccent(meta[0],meta[1]);
+  } else {
+    setAccent('#B24BF3','CLASSIC');
+  }
+  G.presses=0;G.holdStart=0;G.holdDone=false;G.phase='live';
+  G.dur=it.dur*1000;G.t0=performance.now();G.lastTick=-1;
+  const promptLength=(it.text||'').trim().length;
+  els.btn.classList.toggle('longPrompt',promptLength>30);
+  els.btn.classList.toggle('veryLongPrompt',promptLength>58);
+  els.text.textContent=it.text;
+  const emojiValue=it.big||it.emoji||'';
+  const emojiCount=it.big?1:countGraphemes(emojiValue);
+  els.emoji.textContent=emojiValue;
+  els.emoji.classList.toggle('manyEmoji',emojiCount>4);
+  els.emoji.classList.toggle('denseEmoji',emojiCount>7);
+  els.emoji.style.fontSize=it.big?'clamp(44px,13vw,68px)':'';
+  els.sub.textContent=it.sub||'';
+  els.holdBar.style.visibility = it.type==='hold'?'visible':'hidden';
+  els.holdFill.style.width='0%';
+  applyFx(it.fx||null);
+  // jumpscare scheduling
+  clearTimeout(G.scareTO);
+  if(it.type==='scare'){
+    G.scareTO=setTimeout(()=>{
+      if(G.phase!=='live')return;
+      els.scareEmoji.textContent=it.scare.emoji;
+      els.scareText.textContent=it.scare.text;
+      els.scareEl.classList.add('show');sScare();
+      els.app.classList.add('shake');setTimeout(()=>els.app.classList.remove('shake'),380);
+      setTimeout(()=>els.scareEl.classList.remove('show'),1100);
+    }, G.dur*(0.35+Math.random()*0.25));
+  }
+  paintRing(1);
+  cancelAnimationFrame(G.raf);
+  const loop=now=>{
+    if(G.phase!=='live')return;
+    const left=1-(now-G.t0)/G.dur;
+    paintRing(Math.max(0,left));
+    if(G.holdStart&&!G.holdDone){
+      const held=now-G.holdStart;
+      els.holdFill.style.width=Math.min(100,held/20)+'%';
+      if(held>=2000){G.holdDone=true;succeed('ROCK-SOLID GRIP');return;}
+    }
+    const secLeft=Math.ceil(left*G.dur/1000);
+    if(left<0.32&&secLeft!==G.lastTick){G.lastTick=secLeft;sTick();}
+    if(left<=0){onTimeout();return;}
+    G.raf=requestAnimationFrame(loop);
+  };
+  G.raf=requestAnimationFrame(loop);
+}
+
+function onPressDown(){
+  if(G.phase!=='live')return;
+  els.btn.classList.add('pressed');setTimeout(()=>els.btn.classList.remove('pressed'),70);
+  const it=G.seq[G.i];
+  if(it.expected==='hold'){ if(!G.holdStart){G.holdStart=performance.now();els.btn.classList.add('holding');sTap();} return; }
+  if(it.expected==='multi'){G.presses++;sTap();return;}
+  if(it.expected==='press') succeed(it.type==='boss'?'BOSS DOWN!':'PRESSED IN TIME');
+  else fail(it.type==='remember'?'IT SAID JUST REMEMBER!':
+            it.type==='scare'?'THE GHOST GOT YOU! IT SAID DON\'T PRESS!':
+            it.type==='sticky'?'THE SNAKE RULE! 🐍 = NEVER PRESS':
+            it.type==='fact'||it.type==='flag'||it.type==='recall'||it.type==='boss'?'THAT WAS FALSE!':
+            "IT SAID DON'T PRESS!");
+}
+function onPressUp(){
+  if(!G||G.phase!=='live')return;
+  const it=G.seq[G.i];
+  if(it.expected==='hold'&&G.holdStart&&!G.holdDone){
+    els.btn.classList.remove('holding');
+    fail('RELEASED TOO EARLY! HOLD FOR 2 SECONDS');
+  }
+}
+function onTimeout(){
+  const it=G.seq[G.i];
+  if(it.expected==='multi'){
+    const ok=it.mode==='more'?G.presses>it.n:G.presses===it.n;
+    ok?succeed('PERFECT COUNT'):fail(it.mode==='more'?`NEEDED MORE THAN ${it.n} PRESSES!`:`NEEDED EXACTLY ${it.n} PRESSES!`);
+    return;
+  }
+  if(it.expected==='hold'){fail(G.holdStart?'ALMOST! HOLD THE FULL 2 SECONDS':'YOU NEVER GRABBED IT!');return;}
+  if(it.expected==='wait') succeed(it.type==='remember'?'NUMBER STORED 🧠':it.type==='scare'?'FEARLESS. RESPECT.':'NERVES OF STEEL');
+  else fail(it.type==='sticky'?'THE RAT RULE! 🐀 = ALWAYS PRESS':
+            it.type==='fact'||it.type==='flag'||it.type==='recall'||it.type==='boss'?'THAT WAS TRUE — PRESS NEXT TIME!':
+            'TOO SLOW!');
+}
+
+function succeed(msg){
+  G.phase='fb';cancelAnimationFrame(G.raf);clearTimeout(G.scareTO);
+  els.btn.classList.remove('holding');
+  const it=G.seq[G.i];
+  if(it.rule){const c=document.createElement('div');c.className='chip';c.textContent=it.rule.label;els.rules.appendChild(c);}
+  G.streak++;G.bestStreak=Math.max(G.bestStreak,G.streak);G.solved++;
+  const pts=computePoints(G.streak, !!it.double);
+  G.score+=pts;
+  let extra='';
+  if(G.mode.features.lifeRegen && G.solved%12===0&&G.lives<3){
+    G.lives++;extra=' • ❤ RESTORED!';
+    setHearts(G.lives);
+    beep(880,.1,'triangle',.06,.2);
+  }
+  els.score.textContent=G.score;els.streak.textContent='×'+G.streak;
+  flash(true,`+${pts} • ${msg}${extra}`);sOk();
+  next(620);
+}
+function fail(reason){
+  G.phase='fb';cancelAnimationFrame(G.raf);clearTimeout(G.scareTO);
+  els.btn.classList.remove('holding');els.scareEl.classList.remove('show');
+  G.streak=0;G.lives--;els.streak.textContent='×0';
+  setHearts(G.lives);
+  flash(false,reason);distortThemeMusic();sBad();
+  els.app.classList.add('shake');setTimeout(()=>els.app.classList.remove('shake'),380);
+  if(G.lives<=0){G.endTO=setTimeout(()=>{if(G.phase==='fb')endGame(false,reason);},750);}
+  else next(1050);
+}
+function flash(ok,msg){
+  els.btn.classList.add(ok?'flashOk':'flashBad');
+  els.banner.textContent=msg;els.banner.className='show '+(ok?'ok':'bad');
+  setTimeout(()=>{els.btn.classList.remove('flashOk','flashBad');els.banner.className='';},ok?520:950);
+}
+function next(delay){
+  G.nextTO=setTimeout(()=>{
+    if(G.phase!=='fb')return;
+    G.i++;els.machine.style.transform='translate(0,0)';els.machine.classList.remove('tiny');
+    if(G.lives>0)showPrompt();},delay);
+}
+
+function endGame(won,reason){
+  G.phase='over';
+  const previousBest=BESTS[G.mode.key]||0;
+  const isNewBest=G.score>previousBest;
+  if(isNewBest){BESTS[G.mode.key]=G.score;saveBests();}
+  els.quitDialog.classList.add('hidden');
+  els.machine.classList.add('hidden');els.hud.classList.add('hidden');
+  els.rules.classList.add('hidden');els.catTag.classList.add('hidden');els.exitBtn.classList.add('hidden');
+  els.musicBtn.classList.add('hidden');
+  $('overTitle').textContent=won?'YOU BEAT ALL 240! 🏆':'MACHINE WINS';
+  $('modeBadge').textContent=(G.mode.key==='classic'?'RANDOM':G.mode.label)+' MODE';
+  $('failReason').textContent=won?'':(reason||'');
+  $('finalScore').textContent=G.score;$('finalSolved').textContent=G.solved+' / '+TOTAL;
+  $('finalStreak').textContent=G.bestStreak;$('bestScore').textContent=previousBest;
+  const recordStatus=$('recordStatus');
+  recordStatus.classList.toggle('newBest',isNewBest);
+  recordStatus.textContent=isNewBest
+    ?`NEW PERSONAL BEST · +${G.score-previousBest}`
+    :G.score===previousBest&&G.score>0
+      ?'PERSONAL BEST MATCHED'
+      :`${previousBest-G.score} POINTS BELOW YOUR BEST`;
+  $('funFact').innerHTML='<b>DID YOU KNOW?</b> '+rnd(OVER_FACTS);
+  els.over.classList.remove('hidden');
+}
+
+function openQuitDialog(){
+  if(!G||G.phase==='over'||G.phase==='confirm')return;
+  G.quitPhase=G.phase;
+  G.phase='confirm';
+  cancelAnimationFrame(G.raf);
+  clearTimeout(G.scareTO);clearTimeout(G.nextTO);clearTimeout(G.endTO);
+  els.scareEl.classList.remove('show');
+  els.btn.classList.remove('holding','pressed');
+  els.quitDialog.classList.remove('hidden');
+  els.stayBtn.focus();
+}
+function closeQuitDialog(){
+  if(!G||G.phase!=='confirm')return;
+  els.quitDialog.classList.add('hidden');
+  const previous=G.quitPhase;
+  if(previous==='live')showPrompt();
+  else if(previous==='fb'){
+    G.phase='fb';
+    if(G.lives>0)next(250);
+    else G.endTO=setTimeout(()=>endGame(false,'RUN ENDED'),250);
+  }else{
+    G.phase='idle';
+    G.nextTO=setTimeout(showPrompt,300);
+  }
+}
+function showModeHome(){
+  els.modeHome.classList.remove('hidden');
+  els.gradeView.classList.add('hidden');
+  els.gradeSelectBtn.focus();
+}
+function showGradeModes(){
+  els.modeHome.classList.add('hidden');
+  els.gradeView.classList.remove('hidden');
+  els.gradeView.querySelector('[data-mode]')?.focus();
+}
+// Return to mode select after confirmation in the in-game dialog.
+function quitToMenu(){
+  if(!G||G.phase!=='confirm')return;
+  G.phase='over';
+  cancelAnimationFrame(G.raf);
+  clearTimeout(G.scareTO);clearTimeout(G.nextTO);clearTimeout(G.endTO);
+  els.scareEl.classList.remove('show');
+  els.btn.classList.remove('holding','pressed','flashOk','flashBad');
+  els.banner.className='';
+  els.machine.classList.add('hidden');els.hud.classList.add('hidden');
+  els.rules.classList.add('hidden');els.catTag.classList.add('hidden');els.exitBtn.classList.add('hidden');
+  els.musicBtn.classList.add('hidden');
+  els.quitDialog.classList.add('hidden');
+  els.over.classList.add('hidden');
+  els.start.classList.remove('hidden');
+  showModeHome();
+}
+els.exitBtn.addEventListener('click',openQuitDialog);
+els.stayBtn.addEventListener('click',closeQuitDialog);
+els.quitBtn.addEventListener('click',quitToMenu);
+els.gradeSelectBtn.addEventListener('click',showGradeModes);
+els.gradeBackBtn.addEventListener('click',showModeHome);
+
+let lastMode='classic';
+function startGame(modeKey){
+  const mode = MODES[modeKey] || MODES.challenger;
+  lastMode = mode.key;
+  els.start.classList.add('hidden');els.over.classList.add('hidden');
+  newGame(mode);
+  els.machine.classList.remove('hidden');els.hud.classList.remove('hidden');
+  els.rules.classList.remove('hidden');els.exitBtn.classList.remove('hidden');
+  playThemeMusic();syncMusicButton();
+  els.catTag.classList.toggle('hidden', !mode.features.dynamicAccent);
+  els.btn.classList.remove('longPrompt','veryLongPrompt');
+  els.emoji.classList.remove('manyEmoji','denseEmoji');
+  els.text.textContent='GET READY…';els.emoji.textContent=mode.emoji;els.sub.textContent='';
+  setAccent(mode.features.dynamicAccent?'#FF3E9A':'#B24BF3','WARM-UP');paintRing(1);
+  beep(520,.1);beep(660,.1,'square',.05,.15);
+  G.nextTO=setTimeout(showPrompt,900);
+}
+function returnToMainMenu(){
+  els.over.classList.add('hidden');
+  els.start.classList.remove('hidden');
+  showModeHome();
+}
+
+els.btn.addEventListener('pointerdown',e=>{
+  e.preventDefault();
+  // Keep receiving pointerup/move on this element even if the finger drifts off it mid-hold.
+  try{els.btn.setPointerCapture(e.pointerId);}catch{}
+  onPressDown();
+});
+els.btn.addEventListener('pointerup',e=>{e.preventDefault();onPressUp();});
+els.btn.addEventListener('pointercancel',()=>onPressUp());
+els.btn.addEventListener('contextmenu',e=>e.preventDefault());
+window.addEventListener('keydown',e=>{
+  if(e.code==='Escape'&&!els.quitDialog.classList.contains('hidden')){closeQuitDialog();return;}
+  if(e.code==='Escape'&&!els.gradeView.classList.contains('hidden')){showModeHome();return;}
+  if((e.code==='Space'||e.code==='Enter')&&!e.repeat){
+    if(!els.start.classList.contains('hidden')){
+      startGame(els.gradeView.classList.contains('hidden')?'classic':'challenger');return;
+    }
+    if(!els.over.classList.contains('hidden')){startGame(lastMode);return;}
+    e.preventDefault();onPressDown();
+  }
+});
+window.addEventListener('keyup',e=>{if(e.code==='Space'||e.code==='Enter')onPressUp();});
+document.querySelectorAll('.diffBtn[data-mode]').forEach(b=>b.addEventListener('click',()=>startGame(b.dataset.mode)));
+$('againBtn').addEventListener('click',()=>startGame(lastMode));
+els.overMenuBtn.addEventListener('click',returnToMainMenu);
+}
+
+main().catch(error=>{
+  console.error('Failed to start PRESS TO KNOW:',error);
+});

@@ -1,0 +1,631 @@
+
+  :root{
+    --bg1:#1A0B22; --bg2:#3A1642; --plate:#4A1F52;
+    --accent:#FF3E9A;             /* changes per category (or fixed in Classic mode) */
+    --accent-soft:#FFB3DA;
+    --sun:#FF8A3D;                /* warm sunset glow, paired with --accent for the vaporwave gradient */
+    --grid:#3EEBFF;               /* synthwave-theme perspective grid line color */
+    --amber:#FFA23E; --ok:#33D6A6; --bad:#FF4568;
+    --ink:#FFF4F8; --dim:#CDA0C7;
+    --size:min(86vw,58dvh,420px); /* machine diameter */
+    --machine-offset:-2dvh;
+
+    /* ===== BACKGROUND DECOR CONFIG — every knob for position/size/z-index lives here ===== */
+    /* Nebula theme: corner black hole */
+    --blackhole-size:min(48vw,320px);
+    --blackhole-top:4%; --blackhole-right:-8%;
+    --blackhole-z:0;
+
+    /* Synthwave theme: the machine, sun, skyline baseline and floor share one horizon */
+    --horizon-y:calc(50% + var(--machine-offset) + (var(--size) / 2));
+    --sun-size:calc(var(--size) * 2.18);  /* extends behind the full timer ring so no segment looks detached */
+    --sun-gap:0px;                        /* offset from --horizon; 0 = centered on it */
+    --sun-arc:100%;                       /* how much of the sun's height to draw, from the top down.
+                                              100% = full circle; e.g. 55% = a flat rising-sun dome, with
+                                              the excluded bottom portion not rendered at all (not just hidden) */
+    --sun-z:0;
+    /* Full-width haze sitting on the horizon and fading upward. Deliberately NOT a circle centred
+       on the button — that reads as a black ball. Raise --sun-tint-strength for a darker scene. */
+    --sun-tint-height:clamp(200px,46dvh,520px);
+    --sun-tint-strength:.42;
+    /* Flat black scrim over the whole backdrop during play, so the orb, HUD and prompt text all
+       gain contrast at once. Sits at z-index 1: above every bg layer, below #app (z-index 2). */
+    --scene-scrim:.26;
+    --sun-tint-z:0;
+    --skyline-height:clamp(72px,13vh,130px);
+    --skyline-z:1;
+    --grid-perspective:450px;             /* camera distance — see #grid comment before changing */
+    --grid-rotate:62deg;                  /* floor tilt — see #grid comment before changing */
+    --grid-cell:90px;                     /* grid cell size ("bigger ground" = increase) */
+    --grid-speed:1.3s;                    /* lower = faster scroll */
+    --grid-z:1;
+
+    /* ===== ORB BUTTON — from Figma export src/assets/layered-button-orb.svg =====
+       Diameters are % of --size, derived from the export's 272px canvas (half = 136):
+       outer cyan ring r=119 -> the countdown band (see #ringSvg / buildRing in game-main.js) */
+    --orb-bezel:#43E8FF;    /* outer ring + countdown track */
+    --orb-ring:#FF3FD1;     /* static inner ring */
+    --orb-rim:#F150FF;      /* hairline around the face */
+    --orb-well:#110519;     /* dark disc the orb sits in */
+    --orb-glow:#FF7DEA;     /* top sheen */
+    --orb-face-1:#5A1E6D; --orb-face-2:#3A0D4D; --orb-face-3:#17061F;
+    --orb-dash:#B24BF3;     /* countdown dashes (screen 3) */
+    /* Scaled so the dash ring clears the bezel by the ratio screen 3 shows (~1.19x). */
+    --orb-well-d:78.6%;     /* r=118.25 / 136 */
+    --orb-ring-d:73.2%;     /* r=110    / 136 */
+    --orb-face-d:68.8%;     /* r=103.5  / 136 */
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+  html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+  body{
+    background:var(--bg1);
+    font-family:'Quantico',system-ui,sans-serif;color:var(--ink);
+    display:flex;align-items:center;justify-content:center;
+    touch-action:manipulation;
+  }
+  #bgFx{position:fixed;inset:0;z-index:0;transition:background 1s ease;
+    background:
+      radial-gradient(900px 620px at 50% 22%, color-mix(in srgb, var(--sun) 32%, transparent) 0%, transparent 62%),
+      radial-gradient(1100px 750px at 50% 42%, color-mix(in srgb, var(--accent) 18%, var(--bg2)) 0%, var(--bg1) 68%),
+      repeating-linear-gradient(50deg, rgba(255,214,190,.035) 0 2px, transparent 2px 110px);}
+
+  /* Distant starfield: two tiled star layers twinkling out of sync */
+  #stars{position:fixed;inset:0;z-index:0;pointer-events:none;
+    background-image:
+      radial-gradient(1.6px 1.6px at 12% 18%, #fff 60%, transparent),
+      radial-gradient(1.2px 1.2px at 32% 62%, #fff 60%, transparent),
+      radial-gradient(1.8px 1.8px at 58% 12%, #fff 60%, transparent),
+      radial-gradient(1.3px 1.3px at 78% 44%, #fff 60%, transparent),
+      radial-gradient(1.5px 1.5px at 90% 78%, #fff 60%, transparent),
+      radial-gradient(1.1px 1.1px at 22% 88%, #fff 60%, transparent),
+      radial-gradient(1.4px 1.4px at 48% 38%, #fff 60%, transparent),
+      radial-gradient(1.2px 1.2px at 68% 92%, #fff 60%, transparent),
+      radial-gradient(1.6px 1.6px at 8% 55%, #fff 60%, transparent),
+      radial-gradient(1.3px 1.3px at 95% 22%, #fff 60%, transparent);
+    background-repeat:repeat;background-size:340px 340px;
+    opacity:.55;animation:twinkle 4.5s ease-in-out infinite alternate}
+  #stars::after{content:"";position:absolute;inset:0;
+    background-image:inherit;background-size:190px 190px;background-position:53px 71px;
+    opacity:.5;animation:twinkle 6s ease-in-out infinite alternate-reverse}
+  @keyframes twinkle{0%{opacity:.3}100%{opacity:.9}}
+
+  /* Nebula hyperspace layer: GPU-friendly radial star trails streaming from the vanishing point. */
+  #hyperspace{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;opacity:0;
+    transition:opacity .7s}
+  #hyperspace i{position:absolute;left:50%;top:46%;width:var(--trail-width);height:var(--trail-length);
+    border-radius:999px;opacity:0;will-change:transform,opacity;transform-origin:50% 0;
+    background:linear-gradient(to bottom,transparent,rgba(220,238,255,.55) 35%,#fff 100%);
+    box-shadow:0 0 5px rgba(177,205,255,.7);
+    animation:hyperdrive var(--trail-duration) linear var(--trail-delay) infinite}
+  html[data-theme="nebula"] #hyperspace{opacity:.72}
+  html[data-theme="nebula"] #stars{opacity:.24;animation:none}
+  html[data-theme="nebula"] #stars::after{animation:none}
+  @keyframes hyperdrive{
+    0%{transform:rotate(var(--trail-angle)) translateY(var(--trail-start)) scaleY(.08);opacity:0}
+    12%{opacity:.75}
+    68%{opacity:1}
+    100%{transform:rotate(var(--trail-angle)) translateY(76vmax) scaleY(2.4);opacity:0}
+  }
+
+  /* Nebula-only black hole: a stable lens/core with a separately rotating accretion disk. */
+  #blackhole{position:fixed;top:var(--blackhole-top);right:var(--blackhole-right);width:var(--blackhole-size);aspect-ratio:1;z-index:var(--blackhole-z);
+    pointer-events:none;border-radius:50%;opacity:0;transition:opacity .6s;
+    background:
+      radial-gradient(circle at 50% 50%,transparent 0 29%,rgba(255,177,91,.2) 34%,transparent 51%),
+      radial-gradient(circle at 50% 50%,rgba(104,42,122,.2),transparent 67%);
+    filter:drop-shadow(0 0 34px rgba(255,126,82,.24))}
+  #blackhole::before{content:"";position:absolute;inset:15% -7%;border-radius:50%;
+    background:conic-gradient(from 20deg,transparent 0 5%,#FFCC79 10%,#FF7549 20%,#B72A87 34%,transparent 43% 53%,#8B269C 62%,#FF684D 76%,#FFE09A 88%,transparent 96%);
+    filter:blur(3px) saturate(1.25);opacity:.92;
+    animation:diskSpin 18s linear infinite}
+  #blackhole::after{content:"";position:absolute;inset:27%;border-radius:50%;
+    background:radial-gradient(circle at 43% 38%,#09020E 0 44%,#020104 72%);
+    box-shadow:0 0 0 2px rgba(255,210,145,.16),0 0 20px 6px rgba(255,112,72,.22),inset 8px 5px 13px #000}
+  @keyframes diskSpin{
+    from{transform:rotate(-14deg) scaleY(.34) rotate(0)}
+    to{transform:rotate(-14deg) scaleY(.34) rotate(360deg)}
+  }
+  html[data-theme="nebula"] #blackhole{opacity:.82}
+  /* Dim (not hide) the distant backdrop during gameplay so it doesn't compete with the HUD/button */
+  body:has(#hud:not(.hidden)) #blackhole{opacity:.32}
+  /* SYNTHWAVE theme is the alternative background pick; only one theme's decor renders at a time */
+  html[data-theme="synthwave"] #blackhole{display:none}
+
+  /* Retro sun: warm gradient circle sliced into horizontal scanlines via a mask.
+     Centered on the horizon line (same anchor as the skyline/grid) and sized to sit fully behind the button. */
+  #sun{position:fixed;left:50%;top:calc(var(--horizon-y) + var(--sun-gap));transform:translate(-50%,-50%);
+    width:var(--sun-size);aspect-ratio:1;border-radius:50%;z-index:var(--sun-z);pointer-events:none;
+    opacity:0;transition:opacity .6s;
+    clip-path:inset(0 0 calc(100% - var(--sun-arc)) 0);
+    background:
+      repeating-linear-gradient(to bottom,transparent 0 9px,rgba(35,4,35,.2) 9px 12px),
+      linear-gradient(180deg,#FFE66A 0%,#FFC247 24%,var(--sun) 48%,var(--accent) 76%,#8B285F 100%);
+    -webkit-mask-image:radial-gradient(circle,#000 0 81%,rgba(0,0,0,.88) 87%,rgba(0,0,0,.42) 94%,transparent 100%);
+    mask-image:radial-gradient(circle,#000 0 81%,rgba(0,0,0,.88) 87%,rgba(0,0,0,.42) 94%,transparent 100%);
+    filter:drop-shadow(0 0 34px color-mix(in srgb,var(--sun) 28%,transparent))}
+  /* Even haze across the whole scene just above the horizon: takes the glare off the sun so the
+     button reads against it, without any shape of its own. Bottom edge pins to the horizon (same
+     trick as #skyline) so it never touches the floor. */
+  #sunTint{position:fixed;left:0;right:0;bottom:calc(100% - var(--horizon-y));height:var(--sun-tint-height);
+    z-index:var(--sun-tint-z);pointer-events:none;opacity:0;transition:opacity .6s;
+    background:linear-gradient(to top,
+      rgba(8,1,13,var(--sun-tint-strength)) 0%,
+      rgba(8,1,13,calc(var(--sun-tint-strength) * .72)) 24%,
+      rgba(8,1,13,calc(var(--sun-tint-strength) * .38)) 55%,
+      rgba(8,1,13,calc(var(--sun-tint-strength) * .12)) 80%,
+      transparent 100%)}
+  body::after{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;
+    background:#000;opacity:0;transition:opacity .6s}
+  body:has(#hud:not(.hidden))::after{opacity:var(--scene-scrim)}
+  /* The SVG's bottom edge is its baseline, pinned exactly to the shared horizon. */
+  #skyline{position:fixed;left:0;right:0;bottom:calc(100% - var(--horizon-y));height:var(--skyline-height);z-index:var(--skyline-z);pointer-events:none;
+    color:var(--grid);opacity:0;transition:opacity .6s;width:100%;
+    filter:drop-shadow(0 0 3px color-mix(in srgb,var(--grid) 75%,transparent))}
+  #skyline>polyline{fill:rgba(12,5,25,.76);stroke-width:1.4}
+  #skyline>g{fill:rgba(8,3,18,.9);stroke-width:1.35}
+  /* Perspective grid floor filling everything below the button, scrolling toward the viewer forever.
+     --grid-perspective/--grid-rotate above are hand-tuned/verified: too small a perspective or too steep a
+     rotation silently clips the whole plane out of view (it rotates past the camera), so don't tweak
+     without visually re-checking. */
+  #grid{position:fixed;left:0;right:0;bottom:0;
+    top:var(--horizon-y);z-index:var(--grid-z);pointer-events:none;
+    overflow:hidden;opacity:0;transition:opacity .6s;
+    perspective:var(--grid-perspective)}
+  #grid::before{content:"";position:absolute;left:-100%;right:-100%;top:0;height:150%;
+    background-image:
+      repeating-linear-gradient(to right, var(--grid) 0 1.5px, transparent 1.5px var(--grid-cell)),
+      repeating-linear-gradient(to bottom, var(--grid) 0 1.5px, transparent 1.5px var(--grid-cell));
+    background-size:var(--grid-cell) var(--grid-cell);opacity:.58;
+    filter:drop-shadow(0 0 2px color-mix(in srgb,var(--grid) 70%,transparent));
+    transform:rotateX(var(--grid-rotate));transform-origin:50% 0%;
+    animation:gridMove var(--grid-speed) linear infinite}
+  @keyframes gridMove{from{background-position-y:0}to{background-position-y:var(--grid-cell)}}
+  html[data-theme="synthwave"] #sun,
+  html[data-theme="synthwave"] #sunTint,
+  html[data-theme="synthwave"] #skyline,
+  html[data-theme="synthwave"] #grid{opacity:1}
+  html[data-theme="synthwave"] #skyline{opacity:.72}
+  html[data-theme="synthwave"] #bgFx{
+    background:
+      radial-gradient(ellipse 72% 52% at 50% var(--horizon-y),color-mix(in srgb,var(--sun) 19%,transparent),transparent 68%),
+      radial-gradient(900px 620px at 50% 22%,color-mix(in srgb,var(--accent) 20%,transparent),transparent 64%),
+      linear-gradient(180deg,var(--bg2),var(--bg1));
+  }
+
+  .bolt{position:fixed;width:26px;height:26px;border-radius:50%;z-index:1;pointer-events:none;
+    background:
+      linear-gradient(45deg,transparent 45%,rgba(255,255,255,.22) 47% 53%,transparent 55%),
+      radial-gradient(circle at 35% 30%,#6C376E,#1B071C 68%);
+    box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 24%,transparent),
+      0 0 10px color-mix(in srgb,var(--accent) 18%,transparent),inset 0 -3px 6px rgba(0,0,0,.8);
+    transition:opacity .25s}
+  .bolt.b1{top:max(18px,env(safe-area-inset-top));left:max(18px,env(safe-area-inset-left))}
+  .bolt.b2{top:max(18px,env(safe-area-inset-top));right:max(18px,env(safe-area-inset-right))}
+  .bolt.b3{bottom:max(18px,env(safe-area-inset-bottom));left:max(18px,env(safe-area-inset-left))}
+  .bolt.b4{bottom:max(18px,env(safe-area-inset-bottom));right:max(18px,env(safe-area-inset-right))}
+  body:has(#hud:not(.hidden)) .bolt{opacity:0}
+
+  #app{position:relative;width:min(100vw,560px);height:100vh;height:100dvh;z-index:2;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;
+    overscroll-behavior:none}
+
+  /* HUD */
+  #hud{position:absolute;top:max(10px, env(safe-area-inset-top));left:0;right:0;
+    display:flex;justify-content:space-between;align-items:stretch;padding:0 16px;gap:10px;z-index:5}
+  /* Screen 3: each box carries its own neon colour on border, label and value. */
+  .hudBox{--hue:var(--orb-ring);background:rgba(12,4,20,.72);border:2px solid var(--hue);
+    flex:1 1 0;min-width:0;text-align:center;border-radius:12px;padding:7px 8px;backdrop-filter:blur(4px);
+    box-shadow:0 0 12px color-mix(in srgb, var(--hue) 45%, transparent),
+               inset 0 0 12px color-mix(in srgb, var(--hue) 16%, transparent);
+    transition:border-color .8s}
+  .hudLabel{font-size:11px;letter-spacing:.16em;color:var(--hue);font-weight:700;font-style:italic}
+  .hudVal{font-family:'Quantico',ui-monospace,monospace;font-variant-numeric:tabular-nums;
+    font-size:21px;font-weight:700;line-height:1.15;color:var(--hue);
+    text-shadow:0 0 10px color-mix(in srgb, var(--hue) 60%, transparent)}
+  #streakBox{--hue:var(--amber)}
+  #livesBox{--hue:var(--orb-bezel)}
+  #livesBox .hudVal{font-size:19px;letter-spacing:.06em}
+  .heart{color:#FF4D6D;text-shadow:0 0 10px rgba(255,77,109,.75)}
+  .heart.gone{color:transparent;-webkit-text-stroke:1.4px rgba(255,255,255,.34);text-shadow:none}
+  #catTag{position:absolute;top:calc(max(10px, env(safe-area-inset-top)) + 58px);left:0;right:0;
+    text-align:center;font-size:10px;letter-spacing:.3em;color:var(--accent-soft);font-weight:700;z-index:5;
+    transition:color .8s;opacity:.9}
+  #exitBtn,#musicBtn{position:absolute;top:calc(max(10px, env(safe-area-inset-top)) + 68px);
+    z-index:6;width:44px;height:44px;border-radius:50%;
+    border:2px solid var(--orb-bezel);background:rgba(12,4,20,.72);
+    color:var(--ink);font-size:13px;font-weight:700;line-height:1;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;backdrop-filter:blur(5px);
+    box-shadow:0 0 12px color-mix(in srgb, var(--orb-bezel) 45%, transparent),
+               inset 0 0 12px color-mix(in srgb, var(--orb-bezel) 16%, transparent);
+    transition:transform .08s,border-color .2s,opacity .2s;touch-action:manipulation}
+  #exitBtn{left:max(12px, env(safe-area-inset-left))}
+  #musicBtn{right:max(12px, env(safe-area-inset-right))}
+  #exitBtn svg,#musicBtn svg{width:20px;height:20px;display:block}
+  #exitBtn:active,#musicBtn:active{transform:scale(.88)}
+  #musicBtn.muted{opacity:.58}
+  #musicBtn.muted::after{content:"";position:absolute;width:22px;height:2px;border-radius:2px;background:currentColor;transform:rotate(-45deg)}
+
+  /* MACHINE */
+  #machine{position:relative;width:var(--size);height:var(--size);display:flex;
+    top:var(--machine-offset);align-items:center;justify-content:center;z-index:2;flex-shrink:0;transition:transform .28s cubic-bezier(.34,1.56,.64,1)}
+  #machine.tiny{transform:scale(.52)}
+  /* Dark well behind the orb (export: circle r=118.25, #110519 + cyan hairline) */
+  #machine::before{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:var(--orb-well-d);height:var(--orb-well-d);border-radius:50%;z-index:0;pointer-events:none;
+    background:var(--orb-well);
+    border:2px solid var(--orb-bezel);
+    /* A tight contact shadow hugging the rim lifts the orb off the sun; a wide one is just the
+       black ball again. The cyan glow sits on top so the bezel still reads as neon. */
+    box-shadow:0 0 0 4px rgba(6,1,11,.42),
+               0 8px 30px 6px rgba(4,0,9,.55),
+               0 0 18px color-mix(in srgb, var(--orb-bezel) 62%, transparent),
+               inset 0 0 10px color-mix(in srgb, var(--orb-bezel) 22%, transparent)}
+  /* Static magenta ring (export: circle r=110, #FF3FD1, 2px + glow) */
+  #machine::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:var(--orb-ring-d);height:var(--orb-ring-d);border-radius:50%;z-index:3;pointer-events:none;
+    border:2px solid var(--orb-ring);
+    box-shadow:0 0 12px color-mix(in srgb, var(--orb-ring) 70%, transparent),
+               inset 0 0 12px color-mix(in srgb, var(--orb-ring) 45%, transparent)}
+  /* Countdown segments, drawn in the export's outer cyan band */
+  #ringSvg{position:absolute;inset:0;transform:rotate(-90deg);pointer-events:none;z-index:2;
+    filter:drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 55%, transparent))}
+  #btn{
+    position:relative;z-index:4;width:var(--orb-face-d);height:var(--orb-face-d);
+    min-width:0;min-height:0;flex:none;aspect-ratio:1;
+    overflow:hidden;border-radius:50%;border:none;cursor:pointer;
+    background:
+      radial-gradient(ellipse 39% 24% at 50% 29%, color-mix(in srgb, var(--orb-glow) 20%, transparent), transparent 72%),
+      radial-gradient(ellipse 39% 24% at 50% 74%, rgba(5,1,8,.55), transparent 72%),
+      radial-gradient(circle at 50% 50%, var(--orb-face-1) 0%, var(--orb-face-2) 60%, var(--orb-face-3) 100%);
+    box-shadow:
+      inset 0 0 0 1px var(--orb-rim),
+      inset 0 -14px 34px rgba(0,0,0,.6),
+      0 18px 50px rgba(0,0,0,.85),
+      0 0 60px color-mix(in srgb, var(--accent) 26%, transparent);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+    padding:8%;transition:transform .06s ease, box-shadow .5s ease;
+    touch-action:none;outline:none;
+  }
+  #btn:focus-visible{outline:3px solid var(--accent-soft);outline-offset:6px}
+  #btn.pressed{transform:scale(.955)}
+  #btn.flashOk{box-shadow:inset 0 0 0 2px var(--ok),inset 0 -14px 34px rgba(0,0,0,.6),0 0 90px rgba(51,214,166,.6)}
+  #btn.flashBad{box-shadow:inset 0 0 0 2px var(--bad),inset 0 -14px 34px rgba(0,0,0,.6),0 0 100px rgba(255,69,104,.7)}
+  #btn.holding{box-shadow:inset 0 0 0 3px var(--amber),inset 0 -14px 34px rgba(0,0,0,.6),0 0 90px rgba(255,162,62,.6)}
+  #promptEmoji{font-size:clamp(16px,calc(var(--size) * 0.14),52px);line-height:1;min-height:1em;
+    filter:drop-shadow(0 0 14px rgba(255,255,255,.35))}
+  #promptText{font-weight:700;text-align:center;color:#fff;
+    font-size:clamp(13px,calc(var(--size) * 0.062),22px);letter-spacing:.06em;line-height:1.35;
+    text-shadow:0 2px 4px #000,0 0 10px rgba(255,255,255,.62),0 0 28px color-mix(in srgb, var(--accent) 68%, transparent);
+    max-width:100%;text-wrap:balance}
+  #promptSub{font-family:'Quantico',ui-monospace,monospace;font-size:clamp(9px,calc(var(--size) * 0.03),11px);color:#F3A8DC;
+    letter-spacing:.18em;font-weight:700;min-height:1em;text-align:center;text-shadow:0 1px 3px #000;transition:color .8s}
+  #btn.longPrompt{gap:6px;padding:6%}
+  #btn.longPrompt #promptEmoji{font-size:clamp(24px,calc(var(--size) * .1),40px)}
+  #btn.longPrompt #promptText{font-size:clamp(12px,calc(var(--size) * .046),17px);letter-spacing:.025em;line-height:1.18;max-width:96%;overflow-wrap:break-word}
+  #btn.longPrompt #promptSub{font-size:clamp(8px,calc(var(--size) * .025),10px);letter-spacing:.14em}
+  #btn.veryLongPrompt{gap:4px;padding:4%}
+  #btn.veryLongPrompt #promptEmoji{font-size:clamp(18px,calc(var(--size) * .078),30px)}
+  #btn.veryLongPrompt #promptText{font-size:clamp(10px,calc(var(--size) * .037),14px);letter-spacing:.01em;line-height:1.12}
+  #btn.veryLongPrompt #promptSub{font-size:8px;letter-spacing:.1em}
+  #holdBar{width:60%;height:6px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden;
+    visibility:hidden}
+  #holdFill{height:100%;width:0%;background:var(--amber);border-radius:3px}
+
+  /* RULE CHIPS */
+  #rules{position:absolute;bottom:max(14px, env(safe-area-inset-bottom));left:0;right:0;
+    display:flex;gap:8px;justify-content:center;flex-wrap:wrap;z-index:5}
+  .chip{background:rgba(42,14,36,.85);border:1px solid rgba(255,162,62,.55);border-radius:999px;
+    padding:5px 12px;font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--amber);
+    animation:chipIn .4s ease}
+  @keyframes chipIn{from{transform:translateY(12px);opacity:0}to{transform:none;opacity:1}}
+
+  #banner{position:absolute;top:20%;left:50%;width:max-content;max-width:92vw;transform:translateX(-50%);
+    padding:9px 20px;border:2px solid transparent;border-radius:12px;text-align:center;z-index:6;
+    font-weight:700;font-size:clamp(13px,3.6vw,18px);letter-spacing:.08em;
+    opacity:0;transition:opacity .15s;pointer-events:none;
+    background:rgba(7,2,12,.84);backdrop-filter:blur(7px);
+    text-shadow:0 2px 3px #000,0 0 12px currentColor;
+    box-shadow:0 5px 20px rgba(0,0,0,.5)}
+  #banner.ok{color:#5FFFCB;border-color:#5FFFCB;box-shadow:0 0 16px rgba(95,255,203,.45),0 5px 20px rgba(0,0,0,.5)}
+  #banner.bad{color:#FF6B87;border-color:#FF6B87;box-shadow:0 0 16px rgba(255,107,135,.45),0 5px 20px rgba(0,0,0,.5)}
+  #banner.show{opacity:1}
+
+  /* In-game confirmation, used instead of the browser's native confirm dialog. */
+  #quitDialog{position:absolute;inset:0;z-index:35;display:flex;align-items:center;justify-content:center;
+    padding:24px;background:rgba(5,2,10,.72);backdrop-filter:blur(8px)}
+  .quitCard{width:min(330px,88vw);padding:24px 20px;border-radius:20px;text-align:center;
+    background:linear-gradient(145deg,rgba(31,8,38,.98),rgba(10,4,22,.98));
+    border:1.5px solid var(--grid);
+    box-shadow:0 0 24px color-mix(in srgb,var(--grid) 35%,transparent),
+      inset 0 0 22px color-mix(in srgb,var(--accent) 14%,transparent)}
+  .quitCard h2{font-size:21px;letter-spacing:.12em;color:#fff;text-shadow:0 0 10px var(--accent)}
+  .quitCard p{margin-top:8px;color:var(--dim);font-size:13px;line-height:1.45}
+  .quitActions{display:flex;gap:10px;margin-top:20px}
+  .quitActions button{flex:1;min-height:46px;border-radius:12px;font-family:inherit;font-size:13px;
+    font-weight:700;letter-spacing:.08em;color:#fff;cursor:pointer;touch-action:manipulation}
+  #stayBtn{border:1px solid var(--grid);background:rgba(62,235,255,.1)}
+  #quitBtn{border:1px solid var(--bad);background:rgba(255,69,104,.16)}
+  .quitActions button:active{transform:scale(.96)}
+
+  /* JUMPSCARE */
+  #scare{position:fixed;inset:0;z-index:40;display:none;flex-direction:column;align-items:center;justify-content:center;
+    gap:14px;background:radial-gradient(circle at 50% 45%, rgba(120,0,20,.92), rgba(10,0,5,.97));
+    animation:scarePop .18s ease}
+  #scare.show{display:flex}
+  #scareEmoji{font-size:clamp(90px,30vw,170px);animation:scareWobble .22s infinite alternate;
+    filter:drop-shadow(0 0 40px rgba(255,60,60,.9))}
+  #scareText{font-weight:700;font-size:clamp(18px,6vw,30px);letter-spacing:.14em;color:#fff;
+    text-shadow:0 0 20px #F43F5E}
+  @keyframes scarePop{from{transform:scale(1.25);opacity:0}to{transform:scale(1);opacity:1}}
+  @keyframes scareWobble{from{transform:rotate(-7deg) scale(1)}to{transform:rotate(7deg) scale(1.08)}}
+
+  /* OVERLAYS */
+  .overlay{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:13px;text-align:center;padding:20px;
+    padding-top:max(26px, env(safe-area-inset-top));padding-bottom:max(26px, env(safe-area-inset-bottom));
+    overflow-y:auto;-webkit-overflow-scrolling:touch;
+    /* translucent wash (not opaque) so the starfield/black-hole backdrop shows through */
+    background:radial-gradient(900px 700px at 50% 40%, rgba(58,18,54,.62), rgba(15,6,14,.8));}
+  /* ===== START SCREEN (Figma "synthwave" board) ===== */
+  .wordmark{width:min(330px,84vw);height:auto;display:block;
+    filter:drop-shadow(0 0 20px color-mix(in srgb, var(--orb-ring) 42%, transparent))}
+  /* Decorative twin of the game orb: same rings, no countdown, fixed PRESS label. */
+  .heroOrb{position:relative;width:min(250px,42dvh,60vw);aspect-ratio:1;border-radius:50%;
+    display:grid;place-items:center;flex:none;
+    background:
+      radial-gradient(ellipse 39% 24% at 50% 29%, color-mix(in srgb, var(--orb-glow) 20%, transparent), transparent 72%),
+      radial-gradient(ellipse 39% 24% at 50% 74%, rgba(5,1,8,.55), transparent 72%),
+      radial-gradient(circle at 50% 50%, var(--orb-face-1) 0%, var(--orb-face-2) 60%, var(--orb-face-3) 100%);
+    border:2px solid var(--orb-bezel);
+    box-shadow:0 0 0 4px rgba(6,1,11,.42),0 8px 30px 6px rgba(4,0,9,.55),
+               0 0 22px color-mix(in srgb, var(--orb-bezel) 62%, transparent)}
+  .heroOrb::before{content:"";position:absolute;inset:5.5%;border-radius:50%;
+    border:2px solid var(--orb-ring);
+    box-shadow:0 0 12px color-mix(in srgb, var(--orb-ring) 70%, transparent),
+               inset 0 0 12px color-mix(in srgb, var(--orb-ring) 45%, transparent)}
+  .heroOrb span{font-weight:700;font-size:clamp(20px,6.4vw,32px);letter-spacing:.1em;color:#fff;
+    text-shadow:0 2px 4px #000,0 0 12px rgba(255,255,255,.6),
+                0 0 30px color-mix(in srgb, var(--orb-ring) 70%, transparent)}
+  .modeIcon{width:48px;height:48px;flex:none;object-fit:contain}
+  .modeIcon.em{display:grid;place-items:center;font-size:30px}
+  .modeText{flex:1;min-width:0;display:block;font-size:16px;letter-spacing:.03em;color:#fff;line-height:1.15;
+    text-shadow:0 0 12px color-mix(in srgb, var(--orb-ring) 45%, transparent)}
+  .chev{flex:none;font-size:24px;font-weight:700;line-height:1;color:var(--orb-ring);
+    text-shadow:0 0 10px color-mix(in srgb, var(--orb-ring) 60%, transparent)}
+  .overlay h1{font-size:clamp(28px,8.4vw,44px);font-weight:700;letter-spacing:.04em;line-height:1.1;
+    background:linear-gradient(90deg, var(--accent), var(--sun));-webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 0 26px color-mix(in srgb, var(--accent) 55%, transparent)}
+  .overlay h1 .know{-webkit-text-fill-color:var(--amber);color:var(--amber);text-shadow:0 0 24px rgba(255,162,62,.8)}
+  .tagline{color:var(--dim);font-size:13px;letter-spacing:.12em;max-width:36ch;line-height:1.6}
+  .modeView{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
+  .modeViewTitle{font-size:12px;color:var(--accent-soft);font-weight:700;letter-spacing:.16em}
+  .modeBack{align-self:center;min-height:40px;padding:7px 18px;border-radius:999px;cursor:pointer;
+    font:700 12px 'Chakra Petch',sans-serif;letter-spacing:.1em;color:var(--grid);
+    border:1px solid color-mix(in srgb,var(--grid) 55%,transparent);background:rgba(20,7,28,.75)}
+  .diffRow{display:flex;flex-direction:column;gap:10px;width:min(320px,86vw)}
+  .diffBtn{font-family:inherit;font-weight:700;font-size:15px;letter-spacing:.08em;color:#fff;
+    background:rgba(18,7,26,.82);border:2px solid var(--orb-ring);
+    border-radius:16px;padding:11px 14px;cursor:pointer;text-align:left;display:flex;gap:13px;
+    align-items:center;transition:transform .08s, border-color .2s, box-shadow .2s;
+    box-shadow:0 0 14px color-mix(in srgb, var(--orb-ring) 34%, transparent),
+               inset 0 0 16px color-mix(in srgb, var(--orb-ring) 10%, transparent)}
+  .diffBtn small{display:block;font-weight:400;font-size:11.5px;color:var(--dim);letter-spacing:.02em;
+    margin-top:3px;text-shadow:none}
+  .diffBtn:hover{border-color:var(--orb-rim);box-shadow:0 0 20px color-mix(in srgb, var(--orb-ring) 50%, transparent)}
+  .diffBtn:active{transform:scale(.97)}
+  .diffBtn,.bigBtn{touch-action:manipulation}
+  .themeRow{display:flex;gap:12px;width:min(330px,86vw);margin-top:2px}
+  .themeBtn{flex:1;font-family:inherit;font-weight:700;font-size:14px;letter-spacing:.06em;color:var(--dim);
+    background:rgba(18,7,26,.7);border:2px solid rgba(140,90,180,.42);
+    border-radius:999px;padding:7px 12px;cursor:pointer;display:flex;flex-direction:row;align-items:center;
+    justify-content:center;gap:9px;
+    transition:transform .08s, border-color .2s, color .2s, box-shadow .2s;touch-action:manipulation}
+  .themeBtn img{width:30px;height:30px;flex:none;object-fit:contain}
+  .themeBtn:active{transform:scale(.96)}
+  .themeBtn.active{color:#fff;border-color:var(--orb-ring);background:rgba(30,8,40,.9);
+    box-shadow:0 0 18px color-mix(in srgb, var(--orb-ring) 45%, transparent)}
+  .bigBtn{font-family:inherit;font-weight:700;font-size:17px;letter-spacing:.14em;color:#3A1204;
+    background:linear-gradient(180deg,#FFE29A,#FF7849);border:none;border-radius:999px;
+    padding:15px 44px;cursor:pointer;box-shadow:0 0 34px rgba(255,120,73,.55),inset 0 2px 0 rgba(255,255,255,.5);
+    transition:transform .08s}
+  .bigBtn:active{transform:scale(.95)}
+  .stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 28px;justify-items:center;width:min(320px,86vw)}
+  .stat .hudLabel{text-align:center}
+  .stat .hudVal{font-size:26px;text-align:center;color:var(--accent-soft)}
+  #modeBadge{padding:5px 14px;border-radius:999px;color:var(--grid);font-size:11px;font-weight:700;
+    letter-spacing:.14em;border:1px solid color-mix(in srgb,var(--grid) 48%,transparent);background:rgba(8,4,18,.64)}
+  #recordStatus{min-height:1.2em;font-size:13px;font-weight:700;letter-spacing:.1em;color:var(--accent-soft)}
+  #recordStatus.newBest{color:var(--amber);text-shadow:0 0 12px rgba(255,162,62,.7)}
+  .overActions{display:flex;gap:10px;width:min(360px,88vw)}
+  .overActions .bigBtn{flex:1;padding:14px 18px}
+  #overMenuBtn{color:var(--ink);background:rgba(28,9,34,.88);border:1px solid var(--grid);
+    box-shadow:0 0 18px color-mix(in srgb,var(--grid) 25%,transparent)}
+  #failReason{color:var(--bad);font-weight:700;font-size:14px;letter-spacing:.06em;min-height:1em}
+  #funFact{color:var(--dim);font-size:13px;max-width:38ch;line-height:1.6}
+  #funFact b{color:var(--amber)}
+  .hidden{display:none!important}
+
+  @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-11px)}40%{transform:translateX(10px)}60%{transform:translateX(-7px)}80%{transform:translateX(4px)}}
+  #app.shake{animation:shake .35s ease}
+  @media (prefers-reduced-motion: reduce){
+    #app.shake{animation:none}.chip{animation:none}
+    #scareEmoji{animation:none}#scare{animation:none}
+    #stars,#stars::after{animation:none;opacity:.6}
+    #hyperspace{display:none}
+    #blackhole::before{animation:none}
+    #grid::before{animation:none}
+  }
+
+  /* Tighten spacing on short viewports (small phones, landscape) so overlay content fits without scrolling */
+  @media (max-height: 700px){
+    .overlay{gap:10px;padding:16px}
+    .overlay h1{font-size:clamp(22px,7vw,34px)}
+    .tagline{font-size:12px;line-height:1.4}
+    .diffRow{gap:7px}
+    .diffBtn{padding:9px 16px}
+    .stats{gap:8px 20px}
+  }
+  @media (max-height: 520px){
+    :root{--size:min(86vw,46dvh,420px)}
+  }
+  /* Phone layout: reserve room for the HUD/rules and keep every control thumb-friendly. */
+  @media (max-width: 480px){
+    :root{
+      --size:min(84vw,52dvh,360px);
+      --machine-offset:-5dvh;
+      --skyline-height:clamp(60px,11vh,90px);
+      --grid-cell:68px;
+    }
+    #app{padding:8px}
+    #hud{padding:0 max(10px,env(safe-area-inset-right)) 0 max(10px,env(safe-area-inset-left));gap:6px}
+    .hudBox{min-width:0;padding:5px 8px;border-radius:9px}
+    .hudLabel{font-size:8px;letter-spacing:.13em}
+    .hudVal{font-size:clamp(15px,4.6vw,19px)}
+    #catTag{top:calc(max(10px,env(safe-area-inset-top)) + 52px);font-size:9px;letter-spacing:.2em}
+    #exitBtn,#musicBtn{top:calc(max(10px,env(safe-area-inset-top)) + 68px)}
+    #rules{bottom:max(10px,env(safe-area-inset-bottom));gap:5px;padding:0 8px}
+    .chip{padding:4px 8px;font-size:10px;letter-spacing:.035em}
+    #btn{gap:7px}
+    #btn #promptEmoji.manyEmoji{font-size:clamp(15px,calc(var(--size) * .068),25px);white-space:nowrap;letter-spacing:-.08em}
+    #btn #promptEmoji.denseEmoji{font-size:clamp(12px,calc(var(--size) * .052),19px);letter-spacing:-.12em}
+    .overlay{gap:10px;padding-left:16px;padding-right:16px}
+    .overlay h1{font-size:clamp(25px,9vw,38px)}
+    .tagline{font-size:11px;line-height:1.4;letter-spacing:.08em}
+    .diffRow,.themeRow,.stats{width:min(320px,92vw)}
+    .diffRow{gap:7px}
+    .diffBtn{min-height:48px;padding:9px 13px;font-size:14px}
+    .diffBtn small{font-size:10px}
+    .diffBtn .em{font-size:22px}
+    .themeBtn{min-height:48px}
+  }
+  @media (max-width: 360px){
+    :root{--size:min(82vw,49dvh,320px)}
+    .hudBox{padding:4px 6px}
+    .chip{font-size:9px}
+    .tagline br{display:none}
+  }
+  @media (orientation: landscape) and (max-height: 560px){
+    :root{
+      --size:min(48dvh,44vw,300px);
+      --machine-offset:0px;
+      --skyline-height:clamp(48px,15vh,76px);
+      --grid-cell:64px;
+    }
+    .overlay{gap:6px;padding:8px 18px}
+    .overlay h1{font-size:clamp(21px,5.5vh,30px)}
+    .tagline{font-size:10px;line-height:1.25}
+    .diffRow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:min(620px,88vw);gap:6px}
+    .diffBtn{min-height:44px;padding:6px 10px;font-size:12px}
+    .diffBtn small{font-size:9px}
+    .diffBtn .em{font-size:18px}
+    .themeRow{width:min(280px,55vw)}
+    #rules{justify-content:flex-end;padding-right:max(10px,env(safe-area-inset-right));left:55%}
+  }
+
+  /* SYNTHWAVE neon-frame UI: glowing tube borders on the HUD + an arcade-bezel frame around the screen */
+  html[data-theme="synthwave"] #app{
+    width:min(calc(100vw - 12px),560px);height:calc(100dvh - 12px);
+    border:2px solid var(--grid);border-radius:26px;
+    box-shadow:0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent),
+      0 0 14px color-mix(in srgb, var(--grid) 38%, transparent),
+      inset 0 0 20px color-mix(in srgb, var(--grid) 12%, transparent);
+  }
+  html[data-theme="synthwave"] .hudBox{
+    background:rgba(10,4,16,.55);border-width:2px;border-radius:14px;
+    box-shadow:0 0 10px currentColor, inset 0 0 8px color-mix(in srgb, currentColor 35%, transparent);
+  }
+  html[data-theme="synthwave"] #exitBtn,
+  html[data-theme="synthwave"] #musicBtn{
+    color:#E9FCFF;border:1.5px solid var(--grid);
+    background:linear-gradient(145deg,rgba(10,4,22,.94),rgba(45,8,55,.9));
+    box-shadow:0 0 8px color-mix(in srgb,var(--grid) 72%,transparent),
+      inset 0 0 10px color-mix(in srgb,var(--accent) 34%,transparent);
+    text-shadow:0 0 7px var(--grid);
+  }
+  html[data-theme="synthwave"] #hud .hudBox:nth-child(1){color:var(--accent);border-color:var(--accent)}
+  html[data-theme="synthwave"] #hud .hudBox:nth-child(2){color:var(--amber);border-color:var(--amber)}
+  html[data-theme="synthwave"] #hud .hudBox:nth-child(3){color:var(--grid);border-color:var(--grid)}
+  html[data-theme="synthwave"] .hudBox .hudLabel,
+  html[data-theme="synthwave"] .hudBox .hudVal{color:inherit}
+
+  /* Tablets: use the available canvas without letting the machine consume the floor or HUD. */
+  @media (min-width:481px) and (max-width:1024px){
+    :root{
+      --size:min(62vw,52dvh,520px);
+      --machine-offset:-4dvh;
+      --skyline-height:clamp(80px,12vh,145px);
+      --grid-cell:82px;
+      --grid-perspective:560px;
+    }
+    #app,
+    html[data-theme="synthwave"] #app{
+      width:min(calc(100vw - 20px),820px);
+      height:calc(100dvh - 20px);
+      padding:18px;
+    }
+    #hud{left:50%;right:auto;width:min(680px,calc(100% - 36px));transform:translateX(-50%);gap:14px}
+    .hudBox{padding:8px 14px}
+    .hudLabel{font-size:10px}
+    .hudVal{font-size:22px}
+    #hud{width:min(620px,calc(100% - 148px))}
+    #exitBtn,#musicBtn{top:max(10px,env(safe-area-inset-top))}
+    #exitBtn{left:max(18px,calc(50% - 390px))}
+    #musicBtn{right:max(18px,calc(50% - 390px))}
+    #rules{padding:0 24px}
+    .chip{font-size:12px;padding:6px 14px}
+    .overlay{padding:32px;gap:18px}
+    .diffRow,.themeRow,.stats{width:min(390px,76vw)}
+    .diffBtn{min-height:56px}
+  }
+
+  /* Desktop and large displays: a wider cabinet with a centered, bounded gameplay cluster. */
+  @media (min-width:1025px){
+    :root{
+      --size:min(46vw,54dvh,560px);
+      --machine-offset:-4dvh;
+      --skyline-height:clamp(96px,14vh,170px);
+      --grid-cell:105px;
+      --grid-perspective:680px;
+    }
+    #app,
+    html[data-theme="synthwave"] #app{
+      width:min(calc(100vw - 32px),1100px);
+      height:calc(100dvh - 24px);
+      padding:24px;
+      border-radius:30px;
+    }
+    #hud{left:50%;right:auto;width:min(760px,calc(100% - 56px));transform:translateX(-50%);gap:18px}
+    .hudBox{padding:9px 18px}
+    .hudLabel{font-size:11px}
+    .hudVal{font-size:24px}
+    #catTag{font-size:11px}
+    #exitBtn,#musicBtn{top:max(10px,env(safe-area-inset-top))}
+    #exitBtn{left:max(28px,calc(50% - 440px))}
+    #musicBtn{right:max(28px,calc(50% - 440px))}
+    #banner{font-size:24px}
+    #rules{padding:0 40px}
+    .chip{font-size:13px;padding:6px 16px}
+    .overlay{padding:40px;gap:18px}
+    .overlay h1{font-size:46px}
+    .diffRow,.themeRow,.stats{width:min(420px,70vw)}
+    .diffBtn{min-height:58px;font-size:16px}
+    .themeBtn{min-height:52px}
+    .diffBtn:hover,.themeBtn:hover,.bigBtn:hover,.quitActions button:hover{filter:brightness(1.14)}
+  }
+
+  /* Short laptops and tablet landscape keep enough room for the perspective floor. */
+  @media (min-width:700px) and (orientation:landscape) and (max-height:800px){
+    :root{
+      --size:min(46vw,50dvh,460px);
+      --machine-offset:-2dvh;
+      --skyline-height:clamp(64px,13vh,105px);
+    }
+    #exitBtn,#musicBtn{top:max(10px,env(safe-area-inset-top))}
+    #rules{bottom:max(10px,env(safe-area-inset-bottom))}
+  }
+
+  /* The cabinet now reaches every screen edge; content keeps its own responsive spacing. */
+  #app,
+  html[data-theme="synthwave"] #app{
+    width:100vw;max-width:none;height:100dvh;padding:0;border-radius:0;
+  }
