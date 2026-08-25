@@ -7,7 +7,7 @@
     --grid:#3EEBFF;               /* synthwave-theme perspective grid line color */
     --amber:#FFA23E; --ok:#33D6A6; --bad:#FF4568;
     --ink:#FFF4F8; --dim:#CDA0C7;
-    --size:min(86vw,58dvh,420px); /* machine diameter */
+    --size:min(70vw,52dvh,420px); /* machine diameter — 70vw puts the bezel at ~54% of width, per the board */
     --machine-offset:-2dvh;
 
     /* ===== BACKGROUND DECOR CONFIG — every knob for position/size/z-index lives here ===== */
@@ -211,7 +211,7 @@
 
   /* HUD */
   #hud{position:absolute;top:max(10px, env(safe-area-inset-top));left:0;right:0;
-    display:flex;justify-content:space-between;align-items:stretch;padding:0 16px;gap:10px;z-index:5}
+    display:flex;justify-content:space-between;align-items:stretch;padding:0 22px;gap:10px;z-index:5}
   /* Screen 3: each box carries its own neon colour on border, label and value. */
   .hudBox{--hue:var(--orb-ring);background:rgba(12,4,20,.72);border:2px solid var(--hue);
     flex:1 1 0;min-width:0;text-align:center;border-radius:12px;padding:7px 8px;backdrop-filter:blur(4px);
@@ -320,7 +320,7 @@
     animation:chipIn .4s ease}
   @keyframes chipIn{from{transform:translateY(12px);opacity:0}to{transform:none;opacity:1}}
 
-  #banner{position:absolute;top:20%;left:50%;width:max-content;max-width:92vw;transform:translateX(-50%);
+  #banner{position:absolute;top:27%;left:50%;width:max-content;max-width:92vw;transform:translateX(-50%);
     padding:9px 20px;border:2px solid transparent;border-radius:12px;text-align:center;z-index:6;
     font-weight:700;font-size:clamp(13px,3.6vw,18px);letter-spacing:.08em;
     opacity:0;transition:opacity .15s;pointer-events:none;
@@ -362,7 +362,7 @@
 
   /* OVERLAYS */
   .overlay{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;
-    align-items:center;justify-content:center;justify-content:safe center;gap:13px;text-align:center;padding:20px;
+    align-items:center;justify-content:center;justify-content:safe center;gap:0;text-align:center;padding:20px;
     padding-top:max(14px, env(safe-area-inset-top));
     padding-bottom:calc(max(14px, env(safe-area-inset-bottom)) + 46px);
     overflow-y:auto;-webkit-overflow-scrolling:touch;
@@ -375,7 +375,7 @@
      across both lines the way the artwork does. Contrast comes from the page scrim
      (--scene-scrim), so this needs no dark outline of its own. */
   .wordmark{display:block;text-align:center;font-style:italic;font-weight:700;
-    font-size:clamp(28px,9.3vw,52px);line-height:.962;letter-spacing:.02em;
+    font-size:clamp(30px,15.4vw,76px);line-height:.94;letter-spacing:.02em;
     background:linear-gradient(104deg,#F23BFF 0%,#FF4BA5 50%,#FF9138 100%);
     -webkit-background-clip:text;background-clip:text;
     color:transparent;-webkit-text-fill-color:transparent;
@@ -389,9 +389,9 @@
     filter:blur(7px)}
   /* Decorative front-page orb: the Figma export used as-is, baked "PRESS" included.
      (The in-game button can't do this -- it hosts 240 different prompts.) 320x304, not square. */
-  .heroOrb{width:min(250px,42dvh,60vw);height:auto;display:block;flex:none;
+  .heroOrb{width:min(83vw,52dvh,430px);height:auto;display:block;flex:none;
     filter:drop-shadow(0 8px 26px rgba(4,0,9,.55))}
-  .modeIcon{width:48px;height:48px;flex:none;object-fit:contain}
+  .modeIcon{width:40px;height:40px;flex:none;object-fit:contain}
   .modeIcon.em{display:grid;place-items:center;font-size:30px}
   .modeText{flex:1;min-width:0;display:block;font-size:16px;letter-spacing:.03em;color:#fff;line-height:1.15;
     text-shadow:0 0 12px color-mix(in srgb, var(--orb-ring) 45%, transparent)}
@@ -401,14 +401,18 @@
     background:linear-gradient(90deg, var(--accent), var(--sun));-webkit-background-clip:text;background-clip:text;color:transparent;
     text-shadow:0 0 26px color-mix(in srgb, var(--accent) 55%, transparent)}
   .overlay h1 .know{-webkit-text-fill-color:var(--amber);color:var(--amber);text-shadow:0 0 24px rgba(255,162,62,.8)}
-  .tagline{color:#F0DCF5;font-size:13px;letter-spacing:.12em;max-width:36ch;line-height:1.6;
-    text-shadow:0 2px 4px rgba(0,0,0,.9),0 0 12px rgba(0,0,0,.65)}
-  .modeView{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
+  .tagline{color:#F0DCF5;font-size:clamp(9px,2.9vw,15px);letter-spacing:.08em;line-height:1.5;
+    white-space:nowrap;text-shadow:0 2px 4px rgba(0,0,0,.9),0 0 12px rgba(0,0,0,.65)}
+  /* Gaps read off the design board rather than one uniform rhythm. */
+  .tagline{margin-top:1.2dvh}
+  .heroOrb{margin-top:4dvh}
+  .modeView{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;margin-top:4.6dvh}
+  .themeRow{margin-top:2.4dvh}
   .modeViewTitle{font-size:12px;color:var(--accent-soft);font-weight:700;letter-spacing:.16em}
   .modeBack{align-self:center;min-height:40px;padding:7px 18px;border-radius:999px;cursor:pointer;
     font:700 12px 'Chakra Petch',sans-serif;letter-spacing:.1em;color:var(--grid);
     border:1px solid color-mix(in srgb,var(--grid) 55%,transparent);background:rgba(20,7,28,.75)}
-  .diffRow{display:flex;flex-direction:column;gap:10px;width:min(320px,86vw)}
+  .diffRow{display:flex;flex-direction:column;gap:2.6dvh;width:min(420px,84vw)}
   .diffBtn{font-family:inherit;font-weight:700;font-size:15px;letter-spacing:.08em;color:#fff;
     background:rgba(18,7,26,.82);border:2px solid var(--orb-ring);
     border-radius:16px;padding:11px 14px;cursor:pointer;text-align:left;display:flex;gap:13px;
@@ -420,7 +424,7 @@
   .diffBtn:hover{border-color:var(--orb-rim);box-shadow:0 0 20px color-mix(in srgb, var(--orb-ring) 50%, transparent)}
   .diffBtn:active{transform:scale(.97)}
   .diffBtn,.bigBtn{touch-action:manipulation}
-  .themeRow{display:flex;gap:12px;width:min(330px,86vw);margin-top:2px}
+  .themeRow{display:flex;gap:12px;width:min(420px,84vw)}
   .themeBtn{flex:1;font-family:inherit;font-weight:700;font-size:14px;letter-spacing:.06em;color:var(--dim);
     background:rgba(18,7,26,.7);border:2px solid rgba(140,90,180,.42);
     border-radius:999px;padding:7px 12px;cursor:pointer;display:flex;flex-direction:row;align-items:center;
@@ -478,18 +482,18 @@
   /* Below ~620px tall the start screen's wordmark + orb push the theme pills off the bottom,
      so scale the two hero pieces down rather than letting the column scroll. */
   @media (max-height: 620px){
-    .wordmark{font-size:clamp(24px,7.8vw,38px)}
-    .heroOrb{width:min(200px,30dvh,52vw)}
+    .wordmark{font-size:clamp(26px,12.6vw,54px)}
+    .heroOrb{width:min(72vw,38dvh,300px)}
     .modeIcon{width:40px;height:40px}
     .modeText{font-size:15px}
   }
   @media (max-height: 520px){
-    :root{--size:min(86vw,46dvh,420px)}
+    :root{--size:min(70vw,42dvh,420px)}
   }
   /* Phone layout: reserve room for the HUD/rules and keep every control thumb-friendly. */
   @media (max-width: 480px){
     :root{
-      --size:min(84vw,52dvh,360px);
+      --size:min(68vw,48dvh,360px);
       --machine-offset:-5dvh;
       --skyline-height:clamp(60px,11vh,90px);
       --grid-cell:68px;
@@ -517,7 +521,7 @@
     .themeBtn{min-height:48px}
   }
   @media (max-width: 360px){
-    :root{--size:min(82vw,49dvh,320px)}
+    :root{--size:min(67vw,45dvh,320px)}
     .hudBox{padding:4px 6px}
     .chip{font-size:9px}
     .tagline br{display:none}
