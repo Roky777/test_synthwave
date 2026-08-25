@@ -40,8 +40,8 @@
     --grid-cell:90px;                     /* grid cell size ("bigger ground" = increase) */
     --grid-speed:1.3s;                    /* lower = faster scroll */
     --grid-z:1;
-    --floor-line:#8F32D9;      /* matches the art's grid strokes */
-    --horizon-line:#FF32D1;    /* matches the art's horizon */
+    --floor-line:#3B7BFF;      /* grid lines, sampled from bg.png */
+    --horizon-line:#F881FD;    /* horizon glow, sampled from bg.png */
 
     /* ===== ORB BUTTON — from Figma export src/assets/layered-button-orb.svg =====
        Diameters are % of --size, derived from the export's 272px canvas (half = 136):
@@ -66,15 +66,13 @@
     display:flex;align-items:center;justify-content:center;
     touch-action:manipulation;
   }
-  /* Background art supplies sky, stars, streaks and glow. The horizon line and the moving floor
-     stay in CSS so they track --horizon-y at any viewport -- the art is authored at a fixed
-     390x844, so its baked horizon drifts under background-size:cover and the live grid could
-     never line up with it. Clipping at --horizon-y also stops the art's static grid doubling
-     with the animated one. */
-  #bgArt{position:fixed;inset:0;z-index:0;pointer-events:none;
-    background:url("./assets/retro-space-atmosphere-CTub9L0m.svg") center top / cover no-repeat;
-    -webkit-mask-image:linear-gradient(to bottom,#000 0 var(--horizon-y),transparent var(--horizon-y));
-    mask-image:linear-gradient(to bottom,#000 0 var(--horizon-y),transparent var(--horizon-y))}
+  /* bg.png supplies the sky: stars, sun and mountains. Its horizon sits at y=0.577, so the image
+     is pre-cropped there (bg-sky.webp) and this layer ends at --horizon-y with the crop anchored
+     bottom. That pins the art's horizon to the game's own at any viewport -- and since --horizon-y
+     is where the machine's base sits, the sun lands behind the button for free.
+     Below the horizon the floor is CSS, so it can keep moving. */
+  #bgArt{position:fixed;left:0;right:0;top:0;height:var(--horizon-y);z-index:0;pointer-events:none;
+    background:url("./assets/bg-sky-BwjUDoEu.webp") center bottom / cover no-repeat}
   /* The art replaces every generated backdrop piece, in both themes. */
   #sun,#sunTint,#skyline,#blackhole,#hyperspace,#stars,.bolt{display:none!important}
   #bgFx{position:fixed;inset:0;z-index:0;transition:background 1s ease;
@@ -182,14 +180,17 @@
     top:var(--horizon-y);z-index:var(--grid-z);pointer-events:none;
     overflow:hidden;opacity:1;transition:opacity .6s;
     perspective:var(--grid-perspective);
+    background:linear-gradient(180deg,
+      rgba(248,129,253,.30) 0%, rgba(112,38,150,.45) 10%,
+      #1A0E5E 42%, #02127E 100%);
     border-top:2px solid var(--horizon-line);
-    box-shadow:0 0 12px var(--horizon-line),0 -2px 30px color-mix(in srgb,var(--horizon-line) 45%,transparent)}
+    box-shadow:0 0 16px var(--horizon-line),0 -4px 42px color-mix(in srgb,var(--horizon-line) 55%,transparent)}
   #grid::before{content:"";position:absolute;left:-100%;right:-100%;top:0;height:150%;
     background-image:
       repeating-linear-gradient(to right, var(--floor-line) 0 1.5px, transparent 1.5px var(--grid-cell)),
       repeating-linear-gradient(to bottom, var(--floor-line) 0 1.5px, transparent 1.5px var(--grid-cell));
-    background-size:var(--grid-cell) var(--grid-cell);opacity:.62;
-    filter:drop-shadow(0 0 2px color-mix(in srgb,var(--floor-line) 70%,transparent));
+    background-size:var(--grid-cell) var(--grid-cell);opacity:.85;
+    filter:drop-shadow(0 0 3px var(--floor-line)) drop-shadow(0 0 9px color-mix(in srgb,var(--floor-line) 60%,transparent));
     transform:rotateX(var(--grid-rotate));transform-origin:50% 0%;
     animation:gridMove var(--grid-speed) linear infinite}
   @keyframes gridMove{from{background-position-y:0}to{background-position-y:var(--grid-cell)}}
@@ -198,7 +199,7 @@
   html[data-theme="synthwave"] #skyline,
   html[data-theme="synthwave"] #grid{opacity:1}
   html[data-theme="synthwave"] #skyline{opacity:.72}
-  html[data-theme="synthwave"] #bgFx{background:#0B0413}
+  html[data-theme="synthwave"] #bgFx{background:#080318}
 
   .bolt{position:fixed;width:26px;height:26px;border-radius:50%;z-index:1;pointer-events:none;
     background:
