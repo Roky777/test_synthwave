@@ -286,6 +286,7 @@
     padding:8%;transition:transform .06s ease, box-shadow .5s ease;
     touch-action:none;outline:none;
   }
+  #promptEmoji,#promptText,#promptSub,#holdBar{position:relative;z-index:1}
   #btn:focus-visible{outline:3px solid var(--accent-soft);outline-offset:6px}
   #btn.pressed{transform:scale(.955)}
   #btn.flashOk{box-shadow:inset 0 0 0 2px var(--ok),inset 0 -14px 34px rgba(0,0,0,.6),0 0 90px rgba(51,214,166,.6)}
@@ -362,17 +363,38 @@
   /* OVERLAYS */
   .overlay{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;
     align-items:center;justify-content:center;justify-content:safe center;gap:13px;text-align:center;padding:20px;
-    padding-top:max(26px, env(safe-area-inset-top));padding-bottom:max(26px, env(safe-area-inset-bottom));
+    padding-top:max(14px, env(safe-area-inset-top));
+    padding-bottom:calc(max(14px, env(safe-area-inset-bottom)) + 46px);
     overflow-y:auto;-webkit-overflow-scrolling:touch;
     /* translucent wash (not opaque) so the starfield/black-hole backdrop shows through */
     background:radial-gradient(900px 700px at 50% 40%, rgba(58,18,54,.62), rgba(15,6,14,.8));}
   /* ===== START SCREEN (Figma "synthwave" board) ===== */
-  .wordmark{width:min(330px,84vw);height:auto;display:block;
-    filter:drop-shadow(0 0 20px color-mix(in srgb, var(--orb-ring) 42%, transparent))}
+  /* The sun rises right behind the title. Contrast comes from the letterforms themselves --
+     a dark plate behind them just reads as a smudge over the scene. Gradient text is painted via
+     background-clip, so a text-shadow would show through the transparent fill; these stacked
+     drop-shadows build a 1px dark outline plus a soft drop, which works on the alpha instead. */
+  .wordmark{display:flex;flex-direction:column;align-items:center;gap:.02em;
+    font-style:italic;font-weight:700;line-height:.96;letter-spacing:.01em;
+    filter:drop-shadow(1px 0 0 rgba(0,0,0,.92)) drop-shadow(-1px 0 0 rgba(0,0,0,.92))
+           drop-shadow(0 1px 0 rgba(0,0,0,.92)) drop-shadow(0 -1px 0 rgba(0,0,0,.92))
+           drop-shadow(0 3px 7px rgba(0,0,0,.75))
+           drop-shadow(0 0 22px color-mix(in srgb, var(--orb-ring) 55%, transparent))}
+  .wordmark span{display:block;font-size:clamp(32px,10.6vw,50px);
+    background:linear-gradient(96deg,#FF3FD1 0%,#FF57B0 44%,#FF7A5C 100%);
+    -webkit-background-clip:text;background-clip:text;
+    color:transparent;-webkit-text-fill-color:transparent}
   /* The front-page orb is decorative, so it uses the Figma export directly -- baked "PRESS" and all.
      (The in-game button can't: it hosts 240 different prompts.) Export is 320x304, not square. */
+  /* Decorative front-page orb: the Figma export used as-is, baked "PRESS" included.
+     (The in-game button can't do this -- it hosts 240 different prompts.) 320x304, not square. */
   .heroOrb{width:min(250px,42dvh,60vw);height:auto;display:block;flex:none;
     filter:drop-shadow(0 8px 26px rgba(4,0,9,.55))}
+  /* Soft dark plate so the prompt text separates from the lit orb face underneath. */
+  #btn::before{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:88%;height:64%;border-radius:50%;pointer-events:none;z-index:0;
+    background:radial-gradient(ellipse at 50% 50%,
+      rgba(3,0,7,.60) 0 42%, rgba(3,0,7,.32) 68%, transparent 100%);
+    filter:blur(7px)}
   .modeIcon{width:48px;height:48px;flex:none;object-fit:contain}
   .modeIcon.em{display:grid;place-items:center;font-size:30px}
   .modeText{flex:1;min-width:0;display:block;font-size:16px;letter-spacing:.03em;color:#fff;line-height:1.15;
@@ -383,7 +405,8 @@
     background:linear-gradient(90deg, var(--accent), var(--sun));-webkit-background-clip:text;background-clip:text;color:transparent;
     text-shadow:0 0 26px color-mix(in srgb, var(--accent) 55%, transparent)}
   .overlay h1 .know{-webkit-text-fill-color:var(--amber);color:var(--amber);text-shadow:0 0 24px rgba(255,162,62,.8)}
-  .tagline{color:var(--dim);font-size:13px;letter-spacing:.12em;max-width:36ch;line-height:1.6}
+  .tagline{color:#F0DCF5;font-size:13px;letter-spacing:.12em;max-width:36ch;line-height:1.6;
+    text-shadow:0 2px 4px rgba(0,0,0,.9),0 0 12px rgba(0,0,0,.65)}
   .modeView{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
   .modeViewTitle{font-size:12px;color:var(--accent-soft);font-weight:700;letter-spacing:.16em}
   .modeBack{align-self:center;min-height:40px;padding:7px 18px;border-radius:999px;cursor:pointer;
@@ -409,6 +432,10 @@
     transition:transform .08s, border-color .2s, color .2s, box-shadow .2s;touch-action:manipulation}
   .themeBtn img{width:30px;height:30px;flex:none;object-fit:contain}
   .themeBtn:active{transform:scale(.96)}
+  /* Nebula is parked for now: keep the pill visible but inert. Re-enable by dropping the
+     `disabled` attribute in the markup -- the theme picker derives everything else from it. */
+  .themeBtn:disabled{opacity:.38;cursor:not-allowed;filter:grayscale(.55)}
+  .themeBtn:disabled:active{transform:none}
   .themeBtn.active{color:#fff;border-color:var(--orb-ring);background:rgba(30,8,40,.9);
     box-shadow:0 0 18px color-mix(in srgb, var(--orb-ring) 45%, transparent)}
   .bigBtn{font-family:inherit;font-weight:700;font-size:17px;letter-spacing:.14em;color:#3A1204;
@@ -455,7 +482,7 @@
   /* Below ~620px tall the start screen's wordmark + orb push the theme pills off the bottom,
      so scale the two hero pieces down rather than letting the column scroll. */
   @media (max-height: 620px){
-    .wordmark{width:min(280px,72vw)}
+    .wordmark span{font-size:clamp(26px,8.4vw,38px)}
     .heroOrb{width:min(200px,30dvh,52vw)}
     .modeIcon{width:40px;height:40px}
     .modeText{font-size:15px}

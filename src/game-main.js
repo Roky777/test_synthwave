@@ -167,8 +167,13 @@ els.themeMusic.addEventListener('ended',()=>{
   els.themeMusic.currentTime=THEME_TRACK_START[document.documentElement.dataset.theme]||0;
   playThemeMusic();
 });
+// Derived from the markup so parking/unparking a theme is just the `disabled` attribute.
+const enabledThemes=[...themeBtns].filter(b=>!b.disabled).map(b=>b.dataset.themeBtn);
 let savedTheme='synthwave';
 try{savedTheme=localStorage.getItem(BG_THEME_KEY)||'synthwave';}catch{}
+// A previously-saved pick can point at a theme that's since been disabled — that would strand the
+// player there with no enabled button to switch back.
+if(!enabledThemes.includes(savedTheme))savedTheme=enabledThemes[0]||'synthwave';
 applyBgTheme(savedTheme);
 playThemeMusic();
 // Browsers block autoplay until interaction; these handlers guarantee playback on the first gesture.
@@ -177,10 +182,11 @@ document.addEventListener('keydown',playThemeMusic,{once:true});
 
 const SEGS=30; let segEls=[];
 (function buildRing(){
-  // Screen 3 draws the countdown as ~30 chunky rounded dashes in a ring clear of the orb's cyan
-  // bezel. Each dash is a round-capped arc stroke rather than a filled quad, which is what gives
-  // the rounded ends; RING_R/RING_W are in the 100-unit viewBox that spans --size.
-  const NS='http://www.w3.org/2000/svg',cx=50,cy=50,RING_R=46.4,RING_W=4.2,gap=3.4;
+  // Countdown ring: ~30 chunky dashes clear of the orb's cyan bezel. Butt caps (not round) keep the
+  // ticks squared off; round caps add RING_W/2 of length at each end, which is what made them read
+  // as lozenges. gap is per-side in degrees -- at this radius it leaves each tick ~1.3:1.
+  // RING_R/RING_W are in the 100-unit viewBox that spans --size.
+  const NS='http://www.w3.org/2000/svg',cx=50,cy=50,RING_R=46.4,RING_W=4.2,gap=2.6;
   for(let i=0;i<SEGS;i++){
     const a0=(i/SEGS)*2*Math.PI+gap*Math.PI/180,a1=((i+1)/SEGS)*2*Math.PI-gap*Math.PI/180;
     const p=document.createElementNS(NS,'path');
@@ -188,7 +194,7 @@ const SEGS=30; let segEls=[];
     p.setAttribute('d',`M${x(a0)},${y(a0)} A${RING_R},${RING_R} 0 0 1 ${x(a1)},${y(a1)}`);
     p.setAttribute('fill','none');
     p.setAttribute('stroke-width',RING_W);
-    p.setAttribute('stroke-linecap','round');
+    p.setAttribute('stroke-linecap','butt');
     els.ring.appendChild(p);segEls.push(p);
   }
 })();
