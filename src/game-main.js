@@ -263,6 +263,19 @@ function countGraphemes(value){
   catch{return Array.from(value).filter(x=>x.trim()).length;}
 }
 
+// Prompt copy lives in editable JSON, so character-count buckets alone can never guarantee a fit --
+// a 29-char prompt sits under the >16 bucket boundary yet still needs three lines. This shrinks the
+// whole stack until it actually clears the button face, whatever the copy turns out to be.
+function fitPromptToFace(){
+  const b=els.btn;
+  b.style.setProperty('--prompt-scale','1');
+  let scale=1;
+  while(scale>0.45 && b.scrollHeight>b.clientHeight+1){
+    scale-=0.07;
+    b.style.setProperty('--prompt-scale',scale.toFixed(3));
+  }
+}
+
 function showPrompt(){
   const it=G.seq[G.i];
   if(!it){endGame(true);return;}
@@ -275,18 +288,19 @@ function showPrompt(){
   G.presses=0;G.holdStart=0;G.holdDone=false;G.phase='live';
   G.dur=it.dur*1000;G.t0=performance.now();G.lastTick=-1;
   const promptLength=(it.text||'').trim().length;
-  els.btn.classList.toggle('longPrompt',promptLength>30);
-  els.btn.classList.toggle('veryLongPrompt',promptLength>58);
+  els.btn.classList.toggle('longPrompt',promptLength>16);
+  els.btn.classList.toggle('veryLongPrompt',promptLength>34);
   els.text.textContent=it.text;
   const emojiValue=it.big||it.emoji||'';
   const emojiCount=it.big?1:countGraphemes(emojiValue);
   els.emoji.textContent=emojiValue;
   els.emoji.classList.toggle('manyEmoji',emojiCount>4);
   els.emoji.classList.toggle('denseEmoji',emojiCount>7);
-  els.emoji.style.fontSize=it.big?'clamp(44px,13vw,68px)':'';
+  els.emoji.style.fontSize=it.big?'calc(clamp(44px,13vw,68px) * var(--prompt-scale,1))':'';
   els.sub.textContent=it.sub||'';
   els.holdBar.style.visibility = it.type==='hold'?'visible':'hidden';
   els.holdFill.style.width='0%';
+  fitPromptToFace();
   applyFx(it.fx||null);
   // jumpscare scheduling
   clearTimeout(G.scareTO);
@@ -494,6 +508,7 @@ function startGame(modeKey){
   playThemeMusic();syncMusicButton();
   els.catTag.classList.toggle('hidden', !mode.features.dynamicAccent);
   els.btn.classList.remove('longPrompt','veryLongPrompt');
+  els.btn.style.setProperty('--prompt-scale','1');
   els.emoji.classList.remove('manyEmoji','denseEmoji');
   els.text.textContent='GET READY…';els.emoji.textContent=mode.emoji;els.sub.textContent='';
   setAccent(mode.features.dynamicAccent?'#FF3E9A':'#B24BF3','WARM-UP');paintRing(1);
