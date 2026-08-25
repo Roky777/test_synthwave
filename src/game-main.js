@@ -405,10 +405,10 @@ function endGame(won,reason){
   els.musicBtn.classList.add('hidden');
   // Back arrow stays put on the results screen; its handler routes on phase.
   els.exitBtn.classList.remove('hidden');
-  $('overTitle').textContent=won?'YOU BEAT ALL 240! 🏆':'MACHINE WINS';
+  $('overTitle').textContent=won?'YOU WIN':'MACHINE WINS';
   $('modeBadge').textContent=(G.mode.key==='classic'?'RANDOM':G.mode.label)+' MODE';
-  $('failReason').textContent=won?'':(reason||'');
-  $('finalScore').textContent=G.score;$('finalSolved').textContent=G.solved+' / '+TOTAL;
+  $('failReason').textContent=won?'FAST REFLEXES. PERFECT TIMING.':(reason||'');
+  $('finalScore').textContent=G.score;$('finalSolved').textContent=G.solved+'/'+TOTAL;
   $('finalStreak').textContent=G.bestStreak;$('bestScore').textContent=previousBest;
   const recordStatus=$('recordStatus');
   recordStatus.classList.toggle('newBest',isNewBest);

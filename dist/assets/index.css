@@ -445,7 +445,7 @@
     padding:15px 44px;cursor:pointer;box-shadow:0 0 34px rgba(255,120,73,.55),inset 0 2px 0 rgba(255,255,255,.5);
     transition:transform .08s}
   .bigBtn:active{transform:scale(.95)}
-  .stats{display:grid;grid-template-columns:1fr 1fr;gap:0;width:min(430px,88vw);margin-top:1.8dvh}
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:0;width:min(430px,88vw);margin-top:3.4dvh}
   .stat{padding:1.5dvh 6px}
   .stat:nth-child(-n+2){border-bottom:1px solid rgba(186,130,225,.20)}
   .stat:nth-child(odd){border-right:1px solid rgba(186,130,225,.20)}
@@ -453,7 +453,7 @@
     font-size:clamp(11px,3.2vw,14px);letter-spacing:.09em}
   .stat .hudVal{font-size:clamp(24px,7.6vw,36px);text-align:center;color:#D8A6FF;
     text-shadow:0 0 16px rgba(199,125,255,.45)}
-  #modeBadge{margin-top:1.6dvh;padding:8px 24px;border-radius:999px;color:#EBD6F5;
+  #modeBadge{margin-top:1.6dvh;padding:9px 24px;min-width:min(250px,52vw);border-radius:999px;color:#EBD6F5;
     font-size:clamp(11px,3.2vw,14px);font-weight:700;letter-spacing:.12em;
     border:2px solid var(--orb-dash);background:rgba(18,7,26,.72);
     box-shadow:0 0 14px color-mix(in srgb,var(--orb-dash) 42%,transparent)}
@@ -467,11 +467,11 @@
     box-shadow:0 0 22px rgba(255,110,130,.45),inset 0 2px 0 rgba(255,255,255,.4)}
   #overMenuBtn{color:#fff;background:rgba(18,7,26,.92);border:2px solid var(--orb-dash);
     box-shadow:0 0 18px color-mix(in srgb,var(--orb-dash) 35%,transparent)}
-  #failReason{margin-top:1.8dvh;color:#FF6B87;font-weight:700;
+  #failReason{margin-top:3.2dvh;color:#FF6B87;font-weight:700;
     font-size:clamp(12px,3.6vw,16px);letter-spacing:.05em;min-height:1em}
-  #funFact{margin-top:2dvh;width:min(430px,88vw);text-align:left;
+  #funFact{margin-top:3.4dvh;width:min(430px,88vw);text-align:left;
     border:2px solid #E8A33D;border-radius:14px;padding:11px 15px;background:rgba(24,11,5,.5);
-    color:#D6C1AE;font-size:clamp(11px,3.2vw,13px);line-height:1.5;
+    color:#D6C1AE;font-size:clamp(11px,3.2vw,13px);line-height:1.5;text-transform:uppercase;
     box-shadow:0 0 14px rgba(232,163,61,.16)}
   #funFact b{display:block;color:#E8A33D;letter-spacing:.1em;
     font-size:clamp(11px,3.2vw,13px);margin-bottom:5px}
