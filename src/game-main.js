@@ -6,9 +6,23 @@ import {
 } from './game-logic.js';
 
 const AUDIO_BUNDLE_URL=new URL('assets/theme-audio.wasm',document.baseURI).href;
+// Where the tracks live when the WASM bundle isn't there to unpack.
+const SOURCE_TRACKS={
+  synthwave:new URL('src/assets/audio/echoes.mp3',document.baseURI).href,
+  nebula:new URL('src/assets/audio/Cornfieldchase.mp3',document.baseURI).href,
+};
 async function loadThemeTracks(){
+  let response;
+  try{response=await fetch(AUDIO_BUNDLE_URL);}
+  catch(error){
+    console.warn('Could not reach the theme audio bundle; using source audio files.',error);
+    return SOURCE_TRACKS;
+  }
+  // Only `vite build` emits assets/theme-audio.wasm (and vite dev serves it from middleware).
+  // Opening the source tree on a plain static server has no such file — that's the documented
+  // fallback path, not a fault, so it shouldn't log like one.
+  if(response.status===404)return SOURCE_TRACKS;
   try{
-    const response=await fetch(AUDIO_BUNDLE_URL);
     if(!response.ok)throw new Error(`Unable to load theme audio (${response.status})`);
     let module;
     try{module=await WebAssembly.compileStreaming(Promise.resolve(response.clone()));}
@@ -23,12 +37,9 @@ async function loadThemeTracks(){
       nebula:track('Cornfieldchase.mp3'),
     };
   }catch(error){
-    // Keeps plain static-source development usable; production always emits the WASM bundle.
-    console.warn('WASM audio bundle unavailable; using source audio files.',error);
-    return {
-      synthwave:new URL('src/assets/audio/echoes.mp3',document.baseURI).href,
-      nebula:new URL('src/assets/audio/Cornfieldchase.mp3',document.baseURI).href,
-    };
+    // The bundle was served but is unreadable — that IS worth surfacing.
+    console.warn('Theme audio bundle could not be unpacked; using source audio files.',error);
+    return SOURCE_TRACKS;
   }
 }
 
@@ -175,8 +186,9 @@ try{savedTheme=localStorage.getItem(BG_THEME_KEY)||'synthwave';}catch{}
 // player there with no enabled button to switch back.
 if(!enabledThemes.includes(savedTheme))savedTheme=enabledThemes[0]||'synthwave';
 applyBgTheme(savedTheme);
-playThemeMusic();
-// Browsers block autoplay until interaction; these handlers guarantee playback on the first gesture.
+// No playback attempt before a gesture: browsers block autoplay anyway, and reaching for the
+// AudioContext this early is what triggers Chrome's "was not allowed to start" warning. These
+// handlers start the music on the first interaction, which is the earliest it could have played.
 document.addEventListener('pointerdown',playThemeMusic,{once:true});
 document.addEventListener('keydown',playThemeMusic,{once:true});
 
