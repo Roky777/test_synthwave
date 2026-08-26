@@ -11,7 +11,7 @@
     --bg1:#1A0B22; --bg2:#3A1642; --plate:#4A1F52;
     --accent:#FF3E9A;             /* changes per category (or fixed in Classic mode) */
     --accent-soft:#FFB3DA;
-    --sun:#FF8A3D;                /* warm sunset glow, paired with --accent for the vaporwave gradient */
+    --sun:#FF6B4A;                /* coral core of the sunset disc — no gold anywhere in the backdrop */
     --grid:#3EEBFF;               /* synthwave-theme perspective grid line color */
     --amber:#FFA23E; --ok:#33D6A6; --bad:#FF4568;
     --ink:#FFF4F8; --dim:#CDA0C7;
@@ -45,11 +45,19 @@
     --skyline-z:1;
     --grid-perspective:450px;             /* camera distance — see #grid comment before changing */
     --grid-rotate:62deg;                  /* floor tilt — see #grid comment before changing */
-    --grid-cell:90px;                     /* grid cell size ("bigger ground" = increase) */
+    --grid-cell:72px;                     /* grid cell size ("bigger ground" = increase) */
     --grid-speed:9s;                      /* lower = faster scroll; kept slow so the floor drifts rather than draws the eye */
     --grid-z:1;
-    --floor-line:#3B7BFF;      /* grid lines, sampled from bg.png */
-    --horizon-line:#5B8CFF;    /* seam glow — blue, no pink anywhere */
+    /* ===== CODE-DRAWN BACKDROP PALETTE (see the backdrop block below) =====
+       Nothing in the backdrop comes from an image any more, so every colour here is live: change
+       one var and the whole scene retunes. */
+    --space-1:#0F0524;         /* deep violet at the top of the sky */
+    --space-2:#1A0B33;         /* lighter violet down at the horizon */
+    --star-cyan:#43E8FF; --star-violet:#974CFF; --star-pink:#FF4BA5;
+    --haze:#4A1260;            /* atmospheric bloom sitting behind the horizon */
+    --haze-size:min(128vw,940px);
+    --floor-line:#C438E8;      /* perspective floor lines — magenta, matches the hero accent */
+    --horizon-line:#FF32D1;    /* the sunset line laid over the seam */
 
     /* ===== ORB BUTTON — from Figma export src/assets/layered-button-orb.svg =====
        Diameters are % of --size, derived from the export's 272px canvas (half = 136):
@@ -74,38 +82,43 @@
     display:flex;align-items:center;justify-content:center;
     touch-action:manipulation;
   }
-  /* bg.png supplies the sky: stars, sun and mountains. Its horizon sits at y=0.577, so the image
-     is pre-cropped there (bg-sky.webp) and this layer ends at --horizon-y with the crop anchored
-     bottom. That pins the art's horizon to the game's own at any viewport -- and since --horizon-y
-     is where the machine's base sits, the sun lands behind the button for free.
-     Below the horizon the floor is CSS, so it can keep moving. */
-  #bgArt{position:fixed;left:0;right:0;top:0;height:var(--horizon-y);z-index:0;pointer-events:none;
-    background:url("src/assets/bg-sky.webp") center bottom / cover no-repeat}
-  /* The art replaces every generated backdrop piece, in both themes. */
-  #sun,#sunTint,#skyline,#blackhole,#hyperspace,#stars,.bolt{display:none!important}
-  #bgFx{position:fixed;inset:0;z-index:0;transition:background 1s ease;
-    background:
-      #0B0413;}
+  /* ===== BACKDROP — layout follows src/assets/retro-space-atmosphere.svg =====
+     Every piece of the scene below — sky, stars, atmosphere, sun, skyline, horizon line and the
+     moving floor — is drawn in CSS/SVG. There are no background image assets, so the whole thing
+     recolours from the vars in :root without anyone re-exporting art. */
 
-  /* Distant starfield: two tiled star layers twinkling out of sync */
+  /* Atmospheric bloom behind the horizon: the reference's r=140 circle under a 40px Gaussian blur,
+     scaled to the viewport. Gives the sunset band something to sit in so the sky isn't flat. */
+  #bgArt{position:fixed;left:50%;top:var(--horizon-y);width:var(--haze-size);aspect-ratio:1;
+    transform:translate(-50%,-46%);border-radius:50%;z-index:0;pointer-events:none;
+    background:radial-gradient(circle,var(--haze) 0%,
+      color-mix(in srgb,var(--haze) 55%,transparent) 44%,transparent 72%);
+    filter:blur(40px);opacity:.19}
+  /* Themes still park their own decor; the synthwave scene is the one that renders. */
+  #blackhole,#hyperspace,.bolt{display:none!important}
+  #bgFx{position:fixed;inset:0;z-index:0;transition:background 1s ease;
+    background:linear-gradient(180deg,var(--space-1) 0%,var(--space-2) 100%)}
+
+  /* Scattered starfield: two tiled layers of white/cyan/violet/pink dots twinkling out of sync.
+     Per-dot alpha stays in the .3-.7 band so nothing out-shines the sun or the button. */
   #stars{position:fixed;inset:0;z-index:0;pointer-events:none;
     background-image:
-      radial-gradient(1.6px 1.6px at 12% 18%, #fff 60%, transparent),
-      radial-gradient(1.2px 1.2px at 32% 62%, #fff 60%, transparent),
-      radial-gradient(1.8px 1.8px at 58% 12%, #fff 60%, transparent),
-      radial-gradient(1.3px 1.3px at 78% 44%, #fff 60%, transparent),
-      radial-gradient(1.5px 1.5px at 90% 78%, #fff 60%, transparent),
-      radial-gradient(1.1px 1.1px at 22% 88%, #fff 60%, transparent),
-      radial-gradient(1.4px 1.4px at 48% 38%, #fff 60%, transparent),
-      radial-gradient(1.2px 1.2px at 68% 92%, #fff 60%, transparent),
-      radial-gradient(1.6px 1.6px at 8% 55%, #fff 60%, transparent),
-      radial-gradient(1.3px 1.3px at 95% 22%, #fff 60%, transparent);
+      radial-gradient(1.6px 1.6px at 12% 18%, rgba(255,255,255,.6) 60%, transparent),
+      radial-gradient(1.3px 1.3px at 32% 62%, color-mix(in srgb,var(--star-cyan) 50%,transparent) 60%, transparent),
+      radial-gradient(1.8px 1.8px at 58% 12%, rgba(255,255,255,.45) 60%, transparent),
+      radial-gradient(1.4px 1.4px at 78% 44%, color-mix(in srgb,var(--star-violet) 50%,transparent) 60%, transparent),
+      radial-gradient(1.5px 1.5px at 90% 78%, rgba(255,255,255,.35) 60%, transparent),
+      radial-gradient(1.2px 1.2px at 22% 88%, color-mix(in srgb,var(--star-pink) 40%,transparent) 60%, transparent),
+      radial-gradient(1.4px 1.4px at 48% 38%, rgba(255,255,255,.7) 60%, transparent),
+      radial-gradient(1.2px 1.2px at 68% 92%, color-mix(in srgb,var(--star-cyan) 45%,transparent) 60%, transparent),
+      radial-gradient(1.6px 1.6px at 8% 55%, color-mix(in srgb,var(--star-violet) 45%,transparent) 60%, transparent),
+      radial-gradient(1.3px 1.3px at 95% 22%, rgba(255,255,255,.5) 60%, transparent);
     background-repeat:repeat;background-size:340px 340px;
-    opacity:.55;animation:twinkle 4.5s ease-in-out infinite alternate}
+    animation:twinkle 4.5s ease-in-out infinite alternate}
   #stars::after{content:"";position:absolute;inset:0;
     background-image:inherit;background-size:190px 190px;background-position:53px 71px;
-    opacity:.5;animation:twinkle 6s ease-in-out infinite alternate-reverse}
-  @keyframes twinkle{0%{opacity:.3}100%{opacity:.9}}
+    animation:twinkle 6s ease-in-out infinite alternate-reverse}
+  @keyframes twinkle{0%{opacity:.55}100%{opacity:.95}}
 
   /* Nebula hyperspace layer: GPU-friendly radial star trails streaming from the vanishing point. */
   #hyperspace{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;opacity:0;
@@ -157,7 +170,7 @@
     clip-path:inset(0 0 calc(100% - var(--sun-arc)) 0);
     background:
       repeating-linear-gradient(to bottom,transparent 0 9px,rgba(35,4,35,.2) 9px 12px),
-      linear-gradient(180deg,#FFE66A 0%,#FFC247 24%,var(--sun) 48%,var(--accent) 76%,#8B285F 100%);
+      radial-gradient(circle at 50% 58%,#FF9E86 0%,#FF7B62 16%,var(--sun) 34%,#FF3E9A 62%,#C2278A 84%,#7A1B63 100%);
     -webkit-mask-image:radial-gradient(circle,#000 0 81%,rgba(0,0,0,.88) 87%,rgba(0,0,0,.42) 94%,transparent 100%);
     mask-image:radial-gradient(circle,#000 0 81%,rgba(0,0,0,.88) 87%,rgba(0,0,0,.42) 94%,transparent 100%);
     filter:drop-shadow(0 0 34px color-mix(in srgb,var(--sun) 28%,transparent))}
@@ -174,12 +187,31 @@
       transparent 100%)}
   body::after{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;
     background:#000;opacity:var(--scene-scrim);transition:opacity .6s}
+  /* The sunset line: a 2px bar straddling the horizon under six stacked blurs, the same layering
+     the reference gets from its filter1_dddddd drop-shadow stack. Sits above the floor so the
+     grid appears to start *at* the light. */
+  #horizonGlow{position:fixed;left:0;right:0;top:var(--horizon-y);height:3px;
+    transform:translateY(-2px);z-index:var(--skyline-z);pointer-events:none;
+    opacity:0;transition:opacity .6s;
+    /* white-hot core, because the sun sits directly behind this line — a flat magenta bar has no
+       contrast against it and the sunset seam disappears */
+    background:linear-gradient(to bottom,#FFE9F9,#fff 45%,var(--horizon-line));
+    box-shadow:
+      0 0 6px #fff,
+      0 0 13px var(--horizon-line),
+      0 0 26px color-mix(in srgb,var(--horizon-line) 72%,transparent),
+      0 0 60px color-mix(in srgb,var(--horizon-line) 45%,transparent),
+      0 0 110px color-mix(in srgb,var(--horizon-line) 28%,transparent),
+      0 0 190px color-mix(in srgb,var(--horizon-line) 16%,transparent)}
   /* The SVG's bottom edge is its baseline, pinned exactly to the shared horizon. */
   #skyline{position:fixed;left:0;right:0;bottom:calc(100% - var(--horizon-y));height:var(--skyline-height);z-index:var(--skyline-z);pointer-events:none;
     color:var(--grid);opacity:0;transition:opacity .6s;width:100%;
     filter:drop-shadow(0 0 3px color-mix(in srgb,var(--grid) 75%,transparent))}
+  /* Silhouettes stay dark against the sunset; only their outlines glow, in the hero cyan with the
+     tall central towers picked out in magenta so the band never reads as one flat colour. */
   #skyline>polyline{fill:rgba(12,5,25,.76);stroke-width:1.4}
   #skyline>g{fill:rgba(8,3,18,.9);stroke-width:1.35}
+  #skyline>g:last-of-type{stroke:var(--orb-ring)}
   /* Perspective grid floor filling everything below the button, scrolling toward the viewer forever.
      --grid-perspective/--grid-rotate above are hand-tuned/verified: too small a perspective or too steep a
      rotation silently clips the whole plane out of view (it rotates past the camera), so don't tweak
@@ -188,25 +220,41 @@
     top:var(--horizon-y);z-index:var(--grid-z);pointer-events:none;
     overflow:hidden;opacity:1;transition:opacity .6s;
     perspective:var(--grid-perspective);
-    /* the art's own lower half — mountains, glow and grid — so the scene is one continuous image */
-    background:url("src/assets/bg-floor.webp") center top / cover no-repeat;
-    /* soft blue bleed upward so the two crops read as one piece, not two stacked images */
-    box-shadow:0 -6px 46px color-mix(in srgb,var(--horizon-line) 30%,transparent)}
+    /* ground haze fading down from the horizon, so the floor is lit rather than sitting on black */
+    background:linear-gradient(to bottom,
+      color-mix(in srgb,var(--haze) 62%,transparent) 0%,
+      color-mix(in srgb,var(--space-2) 82%,transparent) 34%,
+      #0B0418 100%)}
+  /* One evenly-spaced grid laid flat and tipped away from the camera. The 3D projection is what
+     produces the reference's layout for free: horizontals bunch up at the vanishing point and open
+     out toward the bottom of the screen, and the (evenly spaced, fixed) verticals converge on the
+     same centre point. Only the horizontals move — scrolling the background by exactly one cell
+     per cycle makes the loop seamless, so the floor reads as continuous forward motion. */
   #grid::before{content:"";position:absolute;left:-100%;right:-100%;top:0;height:150%;
     background-image:
       repeating-linear-gradient(to right, var(--floor-line) 0 1.5px, transparent 1.5px var(--grid-cell)),
       repeating-linear-gradient(to bottom, var(--floor-line) 0 1.5px, transparent 1.5px var(--grid-cell));
-    background-size:var(--grid-cell) var(--grid-cell);opacity:.22;
+    background-size:var(--grid-cell) var(--grid-cell);opacity:.42;
+    /* lines fade out toward the horizon and thicken up close, matching the reference's progression */
+    -webkit-mask-image:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,.5) 6%,#000 34%);
+    mask-image:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,.5) 6%,#000 34%);
     filter:drop-shadow(0 0 4px color-mix(in srgb,var(--floor-line) 70%,transparent));
     transform:rotateX(var(--grid-rotate));transform-origin:50% 0%;
     animation:gridMove var(--grid-speed) linear infinite}
+  /* Second pass over the nearest third only: doubles the stroke weight and glow of the lines
+     closest to the viewer without touching the distant ones. */
+  #grid::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(to bottom,transparent 0%,
+      color-mix(in srgb,var(--floor-line) 10%,transparent) 78%,
+      color-mix(in srgb,var(--floor-line) 18%,transparent) 100%)}
   @keyframes gridMove{from{background-position-y:0}to{background-position-y:var(--grid-cell)}}
   html[data-theme="synthwave"] #sun,
   html[data-theme="synthwave"] #sunTint,
   html[data-theme="synthwave"] #skyline,
+  html[data-theme="synthwave"] #horizonGlow,
   html[data-theme="synthwave"] #grid{opacity:1}
   html[data-theme="synthwave"] #skyline{opacity:.72}
-  html[data-theme="synthwave"] #bgFx{background:#080318}
+  html[data-theme="synthwave"] #bgFx{background:linear-gradient(180deg,var(--space-1) 0%,var(--space-2) 100%)}
 
   .bolt{position:fixed;width:26px;height:26px;border-radius:50%;z-index:1;pointer-events:none;
     background:
@@ -737,6 +785,7 @@
     <line x1="366" y1="60" x2="374" y2="60"/>
   </g>
 </svg>
+<div id="horizonGlow"></div>
 <div id="grid"></div>
 <div class="bolt b1"></div><div class="bolt b2"></div><div class="bolt b3"></div><div class="bolt b4"></div>
 
