@@ -294,7 +294,7 @@
   #catTag{position:absolute;top:calc(max(10px, env(safe-area-inset-top)) + 58px);left:0;right:0;
     text-align:center;font-size:10px;letter-spacing:.3em;color:var(--accent-soft);font-weight:700;z-index:5;
     transition:color .8s;opacity:.9}
-  #exitBtn,#musicBtn{position:absolute;top:calc(max(10px, env(safe-area-inset-top)) + 68px);
+  #exitBtn,#musicBtn,#gradeBackBtn{position:absolute;top:calc(max(10px, env(safe-area-inset-top)) + 68px);
     z-index:6;width:44px;height:44px;border-radius:50%;
     border:2px solid var(--orb-bezel);background:rgba(12,4,20,.72);
     color:var(--ink);font-size:13px;font-weight:700;line-height:1;cursor:pointer;
@@ -304,8 +304,12 @@
     transition:transform .08s,border-color .2s,opacity .2s;touch-action:manipulation}
   #exitBtn{left:max(12px, env(safe-area-inset-left))}
   #musicBtn{right:max(12px, env(safe-area-inset-right))}
-  #exitBtn svg,#musicBtn svg{width:20px;height:20px;display:block}
-  #exitBtn:active,#musicBtn:active{transform:scale(.88)}
+  /* Same chrome as #exitBtn, but the menu has no HUD above it, so it takes the corner outright
+     rather than the +68px drop. Deliberately left out of the #exitBtn/#musicBtn media queries
+     below for that reason — they only exist to clear the HUD. */
+  #gradeBackBtn{top:max(10px, env(safe-area-inset-top));left:max(12px, env(safe-area-inset-left))}
+  #exitBtn svg,#musicBtn svg,#gradeBackBtn svg{width:20px;height:20px;display:block}
+  #exitBtn:active,#musicBtn:active,#gradeBackBtn:active{transform:scale(.88)}
   #musicBtn.muted{opacity:.58}
   #musicBtn.muted::after{content:"";position:absolute;width:22px;height:2px;border-radius:2px;background:currentColor;transform:rotate(-45deg)}
 
@@ -482,9 +486,6 @@
   .modeView{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;margin-top:3.1dvh}
   .themeRow{margin-top:1.8dvh}
   .modeViewTitle{font-size:12px;color:var(--accent-soft);font-weight:700;letter-spacing:.16em}
-  .modeBack{align-self:center;min-height:40px;padding:7px 18px;border-radius:999px;cursor:pointer;
-    font:700 12px 'Chakra Petch',sans-serif;letter-spacing:.1em;color:var(--grid);
-    border:1px solid color-mix(in srgb,var(--grid) 55%,transparent);background:rgba(20,7,28,.75)}
   .diffRow{display:flex;flex-direction:column;gap:2dvh;width:min(420px,84vw)}
   .diffBtn{font-family:inherit;font-weight:700;font-size:15px;letter-spacing:.08em;color:#fff;
     background:rgba(18,7,26,.82);border:2px solid var(--orb-ring);
@@ -507,8 +508,9 @@
   .themeBtn:active{transform:scale(.96)}
   /* Nebula is parked for now: keep the pill visible but inert. Re-enable by dropping the
      `disabled` attribute in the markup -- the theme picker derives everything else from it. */
-  .themeBtn:disabled{opacity:.38;cursor:not-allowed;filter:grayscale(.55)}
-  .themeBtn:disabled:active{transform:none}
+  /* A parked theme is hidden outright rather than shown greyed out. Unparking is still just
+     removing the `disabled` attribute — the enabled-theme list in game-main.js reads the same flag. */
+  .themeBtn:disabled{display:none}
   .themeBtn.active{color:#fff;border-color:var(--orb-ring);background:rgba(30,8,40,.9);
     box-shadow:0 0 18px color-mix(in srgb, var(--orb-ring) 45%, transparent)}
   .bigBtn{font-family:inherit;font-weight:700;font-size:17px;letter-spacing:.14em;color:#3A1204;
@@ -651,7 +653,8 @@
     box-shadow:0 0 10px currentColor, inset 0 0 8px color-mix(in srgb, currentColor 35%, transparent);
   }
   html[data-theme="synthwave"] #exitBtn,
-  html[data-theme="synthwave"] #musicBtn{
+  html[data-theme="synthwave"] #musicBtn,
+  html[data-theme="synthwave"] #gradeBackBtn{
     color:#E9FCFF;border:1.5px solid var(--grid);
     background:linear-gradient(145deg,rgba(10,4,22,.94),rgba(45,8,55,.9));
     box-shadow:0 0 8px color-mix(in srgb,var(--grid) 72%,transparent),
@@ -867,7 +870,7 @@
           <span class="chev" aria-hidden="true">›</span>
         </button>
       </div>
-      <button class="modeBack" id="gradeBackBtn">← BACK</button>
+      <button id="gradeBackBtn" aria-label="Back to mode select" title="Back to mode select"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6"/></svg></button>
     </div>
     <div class="themeRow" role="group" aria-label="Background theme">
       <button class="themeBtn" data-theme-btn="nebula" disabled title="Nebula theme is not available yet"><img src="src/assets/icons/nebula.png" width="32" height="32" alt=""><span>NEBULA</span></button>
