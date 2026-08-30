@@ -192,7 +192,7 @@ applyBgTheme(savedTheme);
 document.addEventListener('pointerdown',playThemeMusic,{once:true});
 document.addEventListener('keydown',playThemeMusic,{once:true});
 
-const SEGS=30; let segEls=[],outlineEls=[];
+const SEGS=30; let segEls=[];
 (function buildRing(){
   // Countdown ring: ~30 chunky dashes clear of the orb's cyan bezel. Butt caps (not round) keep the
   // ticks squared off; round caps add RING_W/2 of length at each end, which is what made them read
@@ -207,12 +207,7 @@ const SEGS=30; let segEls=[],outlineEls=[];
     p.setAttribute('fill','none');
     p.setAttribute('stroke-width',RING_W);
     p.setAttribute('stroke-linecap','butt');
-    // A pale keyline gives every purple tick the slim light border used by the visual reference.
-    const outline=p.cloneNode();
-    outline.setAttribute('stroke','#FFFFFF');
-    outline.setAttribute('stroke-width',RING_W+0.65);
-    outline.setAttribute('class','ringTickOutline');
-    els.ring.appendChild(outline);els.ring.appendChild(p);outlineEls.push(outline);segEls.push(p);
+    els.ring.appendChild(p);segEls.push(p);
   }
 })();
 let curAccent='#FF3E9A';
@@ -221,12 +216,9 @@ function paintRing(frac){
   const col=frac>0.5?curAccent:frac>0.25?'#FFA23E':'#FF4568';
   segEls.forEach((p,i)=>{
     const active=i<lit;
-    // Active tiles are colour-filled with a pale rim. Spent tiles keep the same silhouette as a
-    // dark hollow tile with a muted violet rim, matching the two states in the visual reference.
+    // Active tiles are colour-filled; spent tiles retain a dark, low-contrast silhouette.
     p.setAttribute('stroke',active?col:'rgba(20,6,27,.92)');
     p.setAttribute('opacity','1');
-    outlineEls[i].setAttribute('stroke',active?'rgba(255,255,255,.78)':'rgba(178,75,243,.58)');
-    outlineEls[i].setAttribute('opacity',active?'.72':'.62');
   });
 }
 function setAccent(hex,label){
