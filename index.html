@@ -415,7 +415,8 @@
     box-shadow:0 0 24px color-mix(in srgb,var(--grid) 35%,transparent),
       inset 0 0 22px color-mix(in srgb,var(--accent) 14%,transparent)}
   .quitCard h2{font-size:21px;letter-spacing:.12em;color:#fff;text-shadow:0 0 10px var(--accent)}
-  .quitCard p{margin-top:8px;color:var(--dim);font-size:13px;line-height:1.45}
+  .quitCard p{margin-top:8px;color:#F2DDF5;font-size:13px;line-height:1.45;
+    text-shadow:0 2px 4px #000,0 0 9px rgba(0,0,0,.8)}
   .quitActions{display:flex;gap:10px;margin-top:20px}
   .quitActions button{flex:1;min-height:46px;border-radius:12px;font-family:inherit;font-size:13px;
     font-weight:700;letter-spacing:.08em;color:#fff;cursor:pointer;touch-action:manipulation}
@@ -479,13 +480,14 @@
     color:transparent;-webkit-text-fill-color:transparent;
     filter:drop-shadow(0 0 18px color-mix(in srgb, var(--orb-ring) 50%, transparent))}
   .tagline{color:#F0DCF5;font-size:clamp(9px,2.9vw,15px);letter-spacing:.08em;line-height:1.5;
-    white-space:nowrap;text-shadow:0 2px 4px rgba(0,0,0,.9),0 0 12px rgba(0,0,0,.65)}
+    white-space:nowrap;text-shadow:0 2px 4px #000,0 0 12px rgba(0,0,0,.9),0 0 18px rgba(242,59,255,.22)}
   /* Gaps read off the design board rather than one uniform rhythm. */
   .tagline{margin-top:1dvh}
   .heroOrb{margin-top:3dvh}
   .modeView{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;margin-top:3.1dvh}
   .themeRow{margin-top:1.8dvh}
   .modeViewTitle{font-size:12px;color:var(--accent-soft);font-weight:700;letter-spacing:.16em}
+  .gradeHeading{display:none}
   .diffRow{display:flex;flex-direction:column;gap:2dvh;width:min(420px,84vw)}
   .diffBtn{font-family:inherit;font-weight:700;font-size:15px;letter-spacing:.08em;color:#fff;
     background:rgba(18,7,26,.82);border:2px solid var(--orb-ring);
@@ -494,11 +496,42 @@
     box-shadow:0 0 14px color-mix(in srgb, var(--orb-ring) 34%, transparent),
                inset 0 0 16px color-mix(in srgb, var(--orb-ring) 10%, transparent)}
   .diffBtn small{display:block;font-weight:400;font-size:11.5px;color:var(--dim);letter-spacing:.02em;
-    margin-top:3px;text-shadow:none}
+    margin-top:3px;text-shadow:0 1px 3px #000,0 0 8px rgba(0,0,0,.8)}
   .diffBtn:hover{border-color:var(--orb-rim);box-shadow:0 0 20px color-mix(in srgb, var(--orb-ring) 50%, transparent)}
   .diffBtn:active{transform:scale(.97)}
   .diffBtn,.bigBtn{touch-action:manipulation}
+
+  /* Grade selection becomes its own focused page, matching the supplied flow while retaining
+     the existing synthwave scene and palette. */
+  #startOverlay:has(#gradeView:not(.hidden)){justify-content:flex-start;padding-top:clamp(82px,13dvh,128px)}
+  #startOverlay:has(#gradeView:not(.hidden))>.wordmark,
+  #startOverlay:has(#gradeView:not(.hidden))>.tagline,
+  #startOverlay:has(#gradeView:not(.hidden))>.heroOrb,
+  #startOverlay:has(#gradeView:not(.hidden))>.themeRow{display:none}
+  #gradeView{width:min(100%,520px);margin:0;gap:clamp(28px,5dvh,48px)}
+  #gradeView .modeViewTitle{display:none}
+  #gradeView .gradeHeading{display:block}
+  .gradeHeading h2{font-size:clamp(27px,7.5vw,42px);font-style:italic;line-height:1.08;
+    letter-spacing:.04em;color:#FF4BD4;text-shadow:0 2px 3px #000,0 0 18px rgba(255,63,209,.72)}
+  .gradeHeading p{margin-top:14px;font-size:clamp(10px,2.7vw,13px);letter-spacing:.15em;
+    color:#F2DDF5;text-shadow:0 2px 4px #000,0 0 10px #000}
+  #gradeView .diffRow{width:min(400px,82vw);gap:14px}
+  #gradeView .diffBtn{min-height:70px;border-width:1.5px;border-radius:16px;padding:9px 14px;background:rgba(12,4,20,.9)}
+  #gradeView .modeIcon{width:44px;height:44px;border-radius:11px;background:transparent;
+    object-fit:contain;filter:drop-shadow(0 0 8px currentColor)}
+  #gradeView .modeText{font-size:clamp(18px,5vw,23px);text-shadow:0 2px 3px #000,0 0 9px currentColor}
+  #gradeView .diffBtn small{margin-top:5px;font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:#E6CDEB}
+  #gradeView .diffBtn[data-mode="explorer"]{border-color:#3EEBFF;box-shadow:0 0 14px rgba(62,235,255,.2),inset 0 0 16px rgba(62,235,255,.06)}
+  #gradeView .diffBtn[data-mode="explorer"] .modeIcon,
+  #gradeView .diffBtn[data-mode="explorer"] .chev{color:#3EEBFF}
+  #gradeView .diffBtn[data-mode="challenger"]{border-color:#F23BFF;box-shadow:0 0 14px rgba(242,59,255,.2),inset 0 0 16px rgba(242,59,255,.06)}
+  #gradeView .diffBtn[data-mode="challenger"] .modeIcon,
+  #gradeView .diffBtn[data-mode="challenger"] .chev{color:#F23BFF}
+  #gradeView .diffBtn[data-mode="mastermind"]{border-color:#FF9138;box-shadow:0 0 14px rgba(255,145,56,.2),inset 0 0 16px rgba(255,145,56,.06)}
+  #gradeView .diffBtn[data-mode="mastermind"] .modeIcon,
+  #gradeView .diffBtn[data-mode="mastermind"] .chev{color:#FF9138}
   .themeRow{display:flex;gap:12px;width:min(420px,84vw)}
+  .themeRow:not(:has(.themeBtn:not(:disabled))){display:none}
   .themeBtn{flex:1;font-family:inherit;font-weight:700;font-size:14px;letter-spacing:.06em;color:var(--dim);
     background:rgba(18,7,26,.7);border:2px solid rgba(140,90,180,.42);
     border-radius:999px;padding:7px 12px;cursor:pointer;display:flex;flex-direction:row;align-items:center;
@@ -523,13 +556,13 @@
   .stat:nth-child(-n+2){border-bottom:1px solid rgba(186,130,225,.20)}
   .stat:nth-child(odd){border-right:1px solid rgba(186,130,225,.20)}
   .stat .hudLabel{text-align:center;font-style:normal;color:#B79AC9;
-    font-size:clamp(11px,3.2vw,14px);letter-spacing:.09em}
+    font-size:clamp(11px,3.2vw,14px);letter-spacing:.09em;text-shadow:0 2px 4px #000}
   .stat .hudVal{font-size:clamp(24px,7.6vw,36px);text-align:center;color:#D8A6FF;
     text-shadow:0 0 16px rgba(199,125,255,.45)}
   #modeBadge{margin-top:1.6dvh;padding:9px 24px;min-width:min(250px,52vw);border-radius:999px;color:#EBD6F5;
     font-size:clamp(11px,3.2vw,14px);font-weight:700;letter-spacing:.12em;
     border:2px solid var(--orb-dash);background:rgba(18,7,26,.72);
-    box-shadow:0 0 14px color-mix(in srgb,var(--orb-dash) 42%,transparent)}
+    text-shadow:0 2px 4px #000;box-shadow:0 0 14px color-mix(in srgb,var(--orb-dash) 42%,transparent)}
   #recordStatus{min-height:1.2em;font-size:clamp(13px,4vw,18px);font-weight:700;letter-spacing:.04em;
     color:#C77DFF;text-shadow:0 0 14px rgba(199,125,255,.45)}
   #recordStatus.newBest{color:var(--amber);text-shadow:0 0 14px rgba(255,162,62,.7)}
@@ -853,20 +886,24 @@
     </div>
     <div class="modeView hidden" id="gradeView">
       <div class="modeViewTitle">SELECT YOUR GRADE RANGE</div>
+      <div class="gradeHeading">
+        <h2>CHOOSE YOUR<br>CHALLENGE</h2>
+        <p>PICK ANY LEVEL YOU WANT TO TRY</p>
+      </div>
       <div class="diffRow">
         <button class="diffBtn" data-mode="explorer">
-          <span class="modeIcon em">🧒</span>
-          <span class="modeText">EXPLORER<small>Classes 4–6 · friendly pace</small></span>
+          <img class="modeIcon" src="src/assets/icons/explorer-compass.svg" width="54" height="54" alt="">
+          <span class="modeText">EXPLORER<small>Grades 4–6</small></span>
           <span class="chev" aria-hidden="true">›</span>
         </button>
         <button class="diffBtn" data-mode="challenger">
-          <span class="modeIcon em">🧠</span>
-          <span class="modeText">CHALLENGER<small>Classes 7–10 · the real deal</small></span>
+          <img class="modeIcon" src="src/assets/icons/icon-glow-wrapper.svg" width="54" height="54" alt="">
+          <span class="modeText">CHALLENGER<small>Grades 7–10</small></span>
           <span class="chev" aria-hidden="true">›</span>
         </button>
         <button class="diffBtn" data-mode="mastermind">
-          <span class="modeIcon em">🎓</span>
-          <span class="modeText">MASTERMIND<small>Classes 11–12 · no mercy</small></span>
+          <img class="modeIcon" src="src/assets/icons/icon-glow-wrapper (1).svg" width="54" height="54" alt="">
+          <span class="modeText">MASTERMIND<small>Grades 11–12</small></span>
           <span class="chev" aria-hidden="true">›</span>
         </button>
       </div>
@@ -874,7 +911,6 @@
     </div>
     <div class="themeRow" role="group" aria-label="Background theme">
       <button class="themeBtn" data-theme-btn="nebula" disabled title="Nebula theme is not available yet"><img src="src/assets/icons/nebula.png" width="32" height="32" alt=""><span>NEBULA</span></button>
-      <button class="themeBtn" data-theme-btn="synthwave"><img src="src/assets/icons/synthwave.png" width="32" height="32" alt=""><span>SYNTHWAVE</span></button>
     </div>
   </div>
 
