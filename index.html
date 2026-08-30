@@ -805,7 +805,7 @@
      and can flash as the browser promotes and evicts layers. Keep the scene, but park its floor
      and remove the costly blur passes on touch phones. A stable viewport height also prevents
      browser chrome opening/closing from continuously resizing the whole game. */
-  @media (max-width:600px), (hover:none) and (pointer:coarse){
+  @media (max-width:600px){
     #grid::before{animation:none;filter:none}
     #ringSvg{filter:none}
     .hudBox,#exitBtn,#musicBtn,#gradeBackBtn,#banner,#quitDialog{backdrop-filter:none;-webkit-backdrop-filter:none}
