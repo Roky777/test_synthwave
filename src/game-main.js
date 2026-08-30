@@ -193,6 +193,10 @@ document.addEventListener('pointerdown',playThemeMusic,{once:true});
 document.addEventListener('keydown',playThemeMusic,{once:true});
 
 const SEGS=30; let segEls=[];
+// The timer runs at the display refresh rate, but its 30 segments only visibly change
+// a few times per second. Avoid rewriting every SVG path on every frame: on some mobile
+// GPUs those redundant mutations repeatedly invalidate the filtered ring and can flicker.
+let lastRingLit=-1,lastRingColor='';
 (function buildRing(){
   // Countdown ring: ~30 chunky dashes clear of the orb's cyan bezel. Butt caps (not round) keep the
   // ticks squared off; round caps add RING_W/2 of length at each end, which is what made them read
@@ -214,6 +218,8 @@ let curAccent='#FF3E9A';
 function paintRing(frac){
   const lit=Math.ceil(frac*SEGS);
   const col=frac>0.5?curAccent:frac>0.25?'#FFA23E':'#FF4568';
+  if(lit===lastRingLit&&col===lastRingColor)return;
+  lastRingLit=lit;lastRingColor=col;
   segEls.forEach((p,i)=>{
     const active=i<lit;
     // Active tiles are colour-filled; spent tiles retain a dark, low-contrast silhouette.

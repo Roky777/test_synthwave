@@ -799,6 +799,20 @@
   html[data-theme="synthwave"] #app{
     width:100vw;max-width:none;height:100dvh;padding:0;border-radius:0;
   }
+
+  /* Mobile browsers have a much smaller compositing budget than desktop GPUs. Animating the
+     background position of the large masked/filtered 3D floor forces a full repaint each frame
+     and can flash as the browser promotes and evicts layers. Keep the scene, but park its floor
+     and remove the costly blur passes on touch phones. A stable viewport height also prevents
+     browser chrome opening/closing from continuously resizing the whole game. */
+  @media (max-width:600px), (hover:none) and (pointer:coarse){
+    #grid::before{animation:none;filter:none}
+    #ringSvg{filter:none}
+    .hudBox,#exitBtn,#musicBtn,#gradeBackBtn,#banner,#quitDialog{backdrop-filter:none;-webkit-backdrop-filter:none}
+    @supports (height:100svh){
+      #app,html[data-theme="synthwave"] #app{height:100svh}
+    }
+  }
 </style>
 </head>
 <body>
