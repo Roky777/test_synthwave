@@ -70,6 +70,16 @@ export function computePoints(streak, isDouble){
   return pts;
 }
 
+// A smooth difficulty curve for the visible countdown. The opening is forgiving,
+// the middle settles into a brisk rhythm, and the final rounds remain challenging
+// without dropping into one-second guesses. Mode multipliers still distinguish the
+// grade levels; prompt-specific minimums below protect multi-press and hold rounds.
+export function getBaseDuration(index, timeMultiplier=1){
+  const progress=Math.max(0,Math.min(1,index/(TOTAL-1)));
+  const seconds=5.2-2.5*Math.sqrt(progress);
+  return seconds*timeMultiplier;
+}
+
 export function buildSequence(mode){
   if(!dataLoaded) throw new Error('Game data not loaded — call loadGameData() before buildSequence().');
   const F = mode.features;
@@ -83,7 +93,7 @@ export function buildSequence(mode){
   let ratIntroDone=false, snakeIntroDone=false;
   let pendingRecall=null, sinceMemory=0, sinceFun=0, sinceScare=0, sinceBoss=0;
 
-  const dur = i => (2.3 + Math.max(0,1-i/130)*2.9) * tMul;
+  const dur = i => getBaseDuration(i,tMul);
   const pushBinary=(item,expected)=>{item.expected=expected;lastBinary=expected;seq.push(item);};
 
   // tutorial opening
@@ -132,7 +142,7 @@ export function buildSequence(mode){
       sinceBoss=0;
       const f=facts[fi++%facts.length];
       pushBinary({type:'boss', text:f[0], emoji:f[2], sub:'⚡ BOSS ROUND · 2× POINTS · HALF TIME ⚡',
-        dur:Math.max(1.9,(d+1.1)*0.55), double:true}, f[1]?'press':'wait');
+        dur:Math.max(2.2,(d+1.1)*0.55), double:true}, f[1]?'press':'wait');
       continue;
     }
     // fun chaos (spaced) — modern modes only
@@ -186,12 +196,11 @@ export function buildSequence(mode){
       else if(pick<0.48) pushBinary({type:'simple', text:'DO NOT PRESS', dur:d}, 'wait');
       else if(pick<0.62) pushBinary({type:'simple', text:'SAME AS LAST', dur:d}, lastBinary);
       else if(pick<0.74) pushBinary({type:'simple', text:'OPPOSITE OF LAST', dur:d}, lastBinary==='press'?'wait':'press');
-      else if(pick<0.82) pushBinary({type:'simple', text:'QUICKLY PRESS!!!', dur:Math.max(1.6,d*0.55)}, 'press');
-      else if(pick<0.90) pushBinary({type:'simple', text:"QUICKLY DON'T PRESS!!!", dur:Math.max(1.6,d*0.55)}, 'wait');
+      else if(pick<0.82) pushBinary({type:'simple', text:'QUICKLY PRESS!!!', dur:Math.max(1.8,d*0.55)}, 'press');
+      else if(pick<0.90) pushBinary({type:'simple', text:"QUICKLY DON'T PRESS!!!", dur:Math.max(1.8,d*0.55)}, 'wait');
       else pushBinary({type:'simple', text:rnd(FLAVOR_WAITS), sub:"(DON'T PRESS)", dur:d}, 'wait');
     }
   }
   return seq;
 }
-
 

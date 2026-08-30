@@ -361,6 +361,13 @@
     font-size:calc(clamp(15px,calc(var(--size) * 0.108),36px) * var(--prompt-scale,1));letter-spacing:.06em;line-height:1.25;
     text-shadow:0 2px 4px #000,0 0 10px rgba(255,255,255,.62),0 0 28px color-mix(in srgb, var(--accent) 68%, transparent);
     max-width:88%;text-wrap:balance;overflow-wrap:normal}
+  /* The warm-up is a short status label, not a normal prompt. Keep it on one balanced line
+     and size it against the button face so compact phones never split READY from GET. */
+  #btn.readyPrompt #promptText{
+    max-width:92%;white-space:nowrap;
+    font-size:calc(clamp(14px,calc(var(--size) * .058),24px) * var(--prompt-scale,1));
+    letter-spacing:.025em;line-height:1
+  }
   #promptSub{font-family:'Quantico',ui-monospace,monospace;font-size:calc(clamp(9px,calc(var(--size) * 0.03),11px) * var(--prompt-scale,1));color:#F3A8DC;
     letter-spacing:.18em;font-weight:700;text-align:center;text-shadow:0 1px 3px #000;transition:color .8s}
   #btn.longPrompt{gap:6px;padding:6%}
@@ -647,6 +654,7 @@
     #rules{bottom:max(10px,env(safe-area-inset-bottom));gap:5px;padding:0 8px}
     .chip{padding:4px 8px;font-size:10px;letter-spacing:.035em}
     #btn{gap:7px}
+    #btn.readyPrompt{gap:9px}
     #btn #promptEmoji.manyEmoji{font-size:calc(clamp(15px,calc(var(--size) * .068),25px) * var(--prompt-scale,1));white-space:nowrap;letter-spacing:-.08em}
     #btn #promptEmoji.denseEmoji{font-size:calc(clamp(12px,calc(var(--size) * .052),19px) * var(--prompt-scale,1));letter-spacing:-.12em}
     .overlay{gap:0;padding-left:16px;padding-right:16px}

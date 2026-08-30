@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterEach, vi } from 'vitest';
 import gameData from '../../src/data/game-data.json' with { type: 'json' };
 import {
   FACTS, FLAGS, MODES, TOTAL,
-  rnd, shuffle, isBandAllowed, computePoints, buildSequence, loadGameData,
+  rnd, shuffle, isBandAllowed, computePoints, getBaseDuration, buildSequence, loadGameData,
 } from '../../src/game-logic.js';
 
 beforeAll(async () => {
@@ -90,6 +90,23 @@ describe('computePoints', () => {
   it('doubles points for boss rounds', () => {
     expect(computePoints(1, true)).toBe(24);
     expect(computePoints(10, true)).toBe(60);
+  });
+});
+
+describe('countdown difficulty curve', () => {
+  it('gets progressively faster without reaching an impossible one-second timer', () => {
+    const opening=getBaseDuration(0);
+    const middle=getBaseDuration(Math.floor(TOTAL/2));
+    const final=getBaseDuration(TOTAL-1);
+    expect(opening).toBeCloseTo(5.2);
+    expect(opening).toBeGreaterThan(middle);
+    expect(middle).toBeGreaterThan(final);
+    expect(final).toBeCloseTo(2.7);
+  });
+
+  it('preserves the mode timing multiplier', () => {
+    expect(getBaseDuration(100,1.3)).toBeGreaterThan(getBaseDuration(100,1));
+    expect(getBaseDuration(100,.85)).toBeLessThan(getBaseDuration(100,1));
   });
 });
 
@@ -185,5 +202,15 @@ describe('buildSequence', () => {
     const explorerSeq = buildSequence(MODES.explorer);
     const mastermindSeq = buildSequence(MODES.mastermind);
     expect(explorerSeq[0].dur).toBeGreaterThan(mastermindSeq[0].dur);
+  });
+
+  it('keeps multi-press and hold prompts achievable', () => {
+    for (let run=0;run<10;run++) {
+      const seq=buildSequence(MODES.challenger);
+      for (const item of seq) {
+        if(item.type==='multi')expect(item.dur).toBeGreaterThanOrEqual(3.4);
+        if(item.type==='hold')expect(item.dur).toBeGreaterThanOrEqual(4.2);
+      }
+    }
   });
 });

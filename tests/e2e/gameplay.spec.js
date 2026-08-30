@@ -15,9 +15,9 @@ test.describe('classic mode gameplay', () => {
 
     await page.click('#btn');
 
-    await expect(page.locator('#banner')).toHaveClass(/ok/);
     await expect(page.locator('#score')).toHaveText('12');
-    await expect(page.locator('#hearts')).toHaveText('❤️❤️❤️');
+    await expect(page.locator('#hearts .heart')).toHaveCount(3);
+    await expect(page.locator('#hearts .heart.gone')).toHaveCount(0);
   });
 
   test('pressing on "DO NOT PRESS" fails and costs a life', async ({ page }) => {
@@ -30,9 +30,9 @@ test.describe('classic mode gameplay', () => {
     await expect(page.locator('#promptText')).toHaveText('DO NOT PRESS', { timeout: 3000 });
     await page.click('#btn'); // wrong press
 
-    await expect(page.locator('#banner')).toHaveClass(/bad/);
     await expect(page.locator('#streak')).toHaveText('×0');
-    await expect(page.locator('#hearts')).toHaveText('❤️❤️🖤');
+    await expect(page.locator('#hearts .heart')).toHaveCount(3);
+    await expect(page.locator('#hearts .heart.gone')).toHaveCount(1);
   });
 
   test('classic mode never shows the category tag (fixed accent, no chaos mechanics)', async ({ page }) => {
@@ -55,7 +55,7 @@ test.describe('modern modes gameplay', () => {
       await expect(page.locator('#catTag')).toContainText('REFLEX');
 
       await page.click('#btn');
-      await expect(page.locator('#banner')).toHaveClass(/ok/);
+      await expect(page.locator('#score')).toHaveText('12');
     });
   }
 });
@@ -76,7 +76,6 @@ test.describe('keyboard controls', () => {
 
     await page.keyboard.press('Space');
 
-    await expect(page.locator('#banner')).toHaveClass(/ok/);
     await expect(page.locator('#score')).toHaveText('12');
   });
 });

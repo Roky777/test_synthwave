@@ -303,6 +303,7 @@ function fitPromptToFace(){
 function showPrompt(){
   const it=G.seq[G.i];
   if(!it){endGame(true);return;}
+  els.btn.classList.remove('readyPrompt');
   if(G.mode.features.dynamicAccent){
     const meta=CAT_META[it.type]||CAT_META.simple;
     setAccent(meta[0],meta[1]);
@@ -527,6 +528,7 @@ function startGame(modeKey){
   playThemeMusic();syncMusicButton();
   els.catTag.classList.toggle('hidden', !mode.features.dynamicAccent);
   els.btn.classList.remove('longPrompt','veryLongPrompt','holdPrompt','breakWords');
+  els.btn.classList.add('readyPrompt');
   els.btn.style.setProperty('--prompt-scale','1');
   els.emoji.classList.remove('manyEmoji','denseEmoji');
   els.text.textContent='GET READY…';els.emoji.textContent=mode.emoji;els.sub.textContent='';
