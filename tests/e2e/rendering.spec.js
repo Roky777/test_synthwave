@@ -10,7 +10,7 @@ test('uses the reduced renderer only on phone-sized viewports', async ({ page })
   }));
 
   if (rendering.width <= 600) {
-    expect(rendering.gridAnimation).toBe('none');
+    expect(rendering.gridAnimation).toBe('gridMoveMobile');
     expect(rendering.ringFilter).toBe('none');
   } else {
     expect(rendering.gridAnimation).toBe('gridMove');

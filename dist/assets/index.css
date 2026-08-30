@@ -240,6 +240,12 @@
       color-mix(in srgb,var(--floor-line) 10%,transparent) 78%,
       color-mix(in srgb,var(--floor-line) 18%,transparent) 100%)}
   @keyframes gridMove{from{background-position-y:0}to{background-position-y:var(--grid-cell)}}
+  /* Phone-safe equivalent: move the already-painted layer by one repeating grid cell. Unlike
+     background-position, this stays on the compositor and does not repaint the filtered floor. */
+  @keyframes gridMoveMobile{
+    from{transform:rotateX(var(--grid-rotate)) translate3d(0,0,0)}
+    to{transform:rotateX(var(--grid-rotate)) translate3d(0,var(--grid-cell),0)}
+  }
   html[data-theme="synthwave"] #sun,
   html[data-theme="synthwave"] #sunTint,
   html[data-theme="synthwave"] #skyline,
@@ -802,11 +808,15 @@
 
   /* Mobile browsers have a much smaller compositing budget than desktop GPUs. Animating the
      background position of the large masked/filtered 3D floor forces a full repaint each frame
-     and can flash as the browser promotes and evicts layers. Keep the scene, but park its floor
-     and remove the costly blur passes on touch phones. A stable viewport height also prevents
+     and can flash as the browser promotes and evicts layers. Keep the floor moving with a
+     compositor-only transform and remove the costly blur passes on phones. A stable height prevents
      browser chrome opening/closing from continuously resizing the whole game. */
   @media (max-width:600px){
-    #grid::before{animation:none;filter:none}
+    #grid::before{
+      animation:gridMoveMobile var(--grid-speed) linear infinite;
+      filter:none;will-change:transform;backface-visibility:hidden;
+      -webkit-backface-visibility:hidden
+    }
     #ringSvg{filter:none}
     .hudBox,#exitBtn,#musicBtn,#gradeBackBtn,#banner,#quitDialog{backdrop-filter:none;-webkit-backdrop-filter:none}
     @supports (height:100svh){
