@@ -168,9 +168,12 @@ function duckThemeMusic(duration=.9){
   musicGain.gain.exponentialRampToValueAtTime(.1,now+.035);
   musicGain.gain.exponentialRampToValueAtTime(1,now+duration);
 }
-function wrongAnswerHaptic(){
-  try{navigator.vibrate?.([90,45,180]);}catch{}
+function vibrate(pattern){
+  try{return navigator.vibrate?.(pattern)??false;}catch{return false;}
 }
+const tapHaptic=()=>vibrate(16);
+const correctAnswerHaptic=()=>vibrate([28,20,48]);
+const wrongAnswerHaptic=()=>vibrate([90,45,180]);
 function syncMusicButton(){
   const inGame=!els.hud.classList.contains('hidden');
   els.musicBtn.classList.toggle('hidden',!inGame);
@@ -401,7 +404,7 @@ function showPrompt(){
     if(G.holdStart&&!G.holdDone){
       const held=now-G.holdStart;
       els.holdFill.style.width=Math.min(100,held/20)+'%';
-      if(held>=2000){G.holdDone=true;succeed('ROCK-SOLID GRIP');return;}
+      if(held>=2000){G.holdDone=true;vibrate([35,22,70]);succeed('ROCK-SOLID GRIP',false);return;}
     }
     const secLeft=Math.ceil(left*G.dur/1000);
     if(left<0.32&&secLeft!==G.lastTick){G.lastTick=secLeft;sTick();}
@@ -415,8 +418,8 @@ function onPressDown(){
   if(G.phase!=='live')return;
   els.btn.classList.add('pressed');setTimeout(()=>els.btn.classList.remove('pressed'),70);
   const it=G.seq[G.i];
-  if(it.expected==='hold'){ if(!G.holdStart){G.holdStart=performance.now();els.btn.classList.add('holding');sTap();} return; }
-  if(it.expected==='multi'){G.presses++;sTap();return;}
+  if(it.expected==='hold'){ if(!G.holdStart){G.holdStart=performance.now();els.btn.classList.add('holding');tapHaptic();sTap();} return; }
+  if(it.expected==='multi'){G.presses++;tapHaptic();sTap();return;}
   if(it.expected==='press') succeed(it.type==='boss'?'BOSS DOWN!':'PRESSED IN TIME');
   else fail(it.type==='remember'?'IT SAID JUST REMEMBER!':
             it.type==='scare'?'THE GHOST GOT YOU! IT SAID DON\'T PRESS!':
@@ -446,7 +449,7 @@ function onTimeout(){
             'TOO SLOW!');
 }
 
-function succeed(msg){
+function succeed(msg,withHaptic=true){
   G.phase='fb';cancelAnimationFrame(G.raf);clearTimeout(G.scareTO);
   els.btn.classList.remove('holding');
   const it=G.seq[G.i];
@@ -461,7 +464,7 @@ function succeed(msg){
     beep(880,.1,'triangle',.06,.2);
   }
   els.score.textContent=G.score;els.streak.textContent='×'+G.streak;
-  flash(true,`+${pts} • ${msg}${extra}`);duckThemeMusic(.7);sOk();
+  flash(true,`+${pts} • ${msg}${extra}`);duckThemeMusic(.7);if(withHaptic)correctAnswerHaptic();sOk();
   next(620);
 }
 function fail(reason){
@@ -627,6 +630,7 @@ window.addEventListener('keyup',e=>{if(e.code==='Space'||e.code==='Enter')onPres
 document.querySelectorAll('.diffBtn[data-mode]').forEach(b=>b.addEventListener('click',()=>startGame(b.dataset.mode)));
 $('againBtn').addEventListener('click',()=>startGame(lastMode));
 els.overMenuBtn.addEventListener('click',returnToMainMenu);
+document.documentElement.dataset.appReady='true';
 }
 
 main().catch(error=>{

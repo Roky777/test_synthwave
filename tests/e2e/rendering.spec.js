@@ -1,7 +1,12 @@
 import { test, expect } from '@playwright/test';
 
-test('uses the reduced renderer only on phone-sized viewports', async ({ page }) => {
+async function openApp(page){
   await page.goto('/');
+  await expect(page.locator('html')).toHaveAttribute('data-app-ready','true');
+}
+
+test('uses the reduced renderer only on phone-sized viewports', async ({ page }) => {
+  await openApp(page);
 
   const rendering = await page.evaluate(() => ({
     width: window.innerWidth,
@@ -19,25 +24,41 @@ test('uses the reduced renderer only on phone-sized viewports', async ({ page })
 });
 
 test('keeps the GET READY label on one line inside the button', async ({ page }) => {
-  await page.goto('/');
-  await page.click('.diffBtn[data-mode="classic"]');
-  await expect(page.locator('#btn')).toHaveClass(/readyPrompt/);
-  await expect(page.locator('#promptText')).toHaveText('GET READY');
-
-  const fit=await page.locator('#promptText').evaluate(el => ({
+  await openApp(page);
+  const fit=await page.evaluate(() => {
+    document.querySelector('.diffBtn[data-mode="classic"]').click();
+    const el=document.querySelector('#promptText');
+    return {
+    ready:document.querySelector('#btn').classList.contains('readyPrompt'),
+    text:el.textContent,
     width:el.getBoundingClientRect().width,
     scrollWidth:el.scrollWidth,
     height:el.getBoundingClientRect().height,
     lineHeight:parseFloat(getComputedStyle(el).lineHeight),
     whiteSpace:getComputedStyle(el).whiteSpace,
-  }));
+    emojiSize:parseFloat(getComputedStyle(document.querySelector('#promptEmoji')).fontSize),
+    emojiTop:document.querySelector('#promptEmoji').getBoundingClientRect().top,
+    emojiBottom:document.querySelector('#promptEmoji').getBoundingClientRect().bottom,
+    textTop:el.getBoundingClientRect().top,
+    textBottom:el.getBoundingClientRect().bottom,
+    stageTop:document.querySelector('.promptStage').getBoundingClientRect().top,
+    stageBottom:document.querySelector('.promptStage').getBoundingClientRect().bottom,
+    };
+  });
+  expect(fit.ready).toBe(true);
+  expect(fit.text).toBe('GET READY');
   expect(fit.whiteSpace).toBe('nowrap');
   expect(fit.scrollWidth).toBeLessThanOrEqual(Math.ceil(fit.width));
   expect(fit.height).toBeLessThanOrEqual(fit.lineHeight+1);
+  expect(fit.emojiSize).toBeGreaterThanOrEqual(28);
+  expect(fit.emojiTop).toBeGreaterThanOrEqual(fit.stageTop-1);
+  expect(fit.emojiBottom).toBeLessThanOrEqual(fit.textTop+1);
+  expect(fit.textBottom).toBeLessThanOrEqual(fit.stageBottom+1);
+  expect(Math.abs((fit.emojiTop+fit.textBottom-fit.stageTop-fit.stageBottom)/2)).toBeLessThanOrEqual(10);
 });
 
 test('fits every prompt typography class inside the button face', async ({ page }) => {
-  await page.goto('/');
+  await openApp(page);
   await page.click('.diffBtn[data-mode="classic"]');
   const results=await page.evaluate(()=>{
     const btn=document.querySelector('#btn');
@@ -90,7 +111,7 @@ test('fits every prompt typography class inside the button face', async ({ page 
 });
 
 test('keeps the complete start UI inside a phone viewport', async ({ page }) => {
-  await page.goto('/');
+  await openApp(page);
   const boxes=await page.evaluate(() => {
     const overlay=document.querySelector('#startOverlay').getBoundingClientRect();
     const title=document.querySelector('.wordmark').getBoundingClientRect();
@@ -127,17 +148,56 @@ test('requests haptic feedback after a wrong answer', async ({ page }) => {
       return true;
     }});
   });
-  await page.goto('/');
+  await openApp(page);
   await page.click('.diffBtn[data-mode="classic"]');
-  await expect(page.locator('#promptText')).toHaveText('PRESS',{timeout:3000});
-  await page.click('#btn');
-  await expect(page.locator('#promptText')).toHaveText('DO NOT PRESS',{timeout:3000});
-  await page.click('#btn');
+  await expect.poll(()=>page.evaluate(()=>{
+    if(document.querySelector('#promptText').textContent!=='PRESS')return false;
+    document.querySelector('#btn').dispatchEvent(new PointerEvent('pointerdown',{pointerId:1,bubbles:true}));
+    return true;
+  })).toBe(true);
+  await expect.poll(()=>page.evaluate(()=>{
+    if(document.querySelector('#promptText').textContent!=='DO NOT PRESS')return false;
+    document.querySelector('#btn').dispatchEvent(new PointerEvent('pointerdown',{pointerId:1,bubbles:true}));
+    return true;
+  })).toBe(true);
   await expect.poll(()=>page.evaluate(()=>window.__vibratePattern)).toEqual([90,45,180]);
 });
 
+test('requests a lighter haptic pattern after a correct answer', async ({ page }) => {
+  await page.addInitScript(() => {
+    window.__vibratePattern=null;
+    Object.defineProperty(navigator,'vibrate',{configurable:true,value:pattern=>{
+      window.__vibratePattern=pattern;
+      return true;
+    }});
+  });
+  await openApp(page);
+  await page.click('.diffBtn[data-mode="classic"]');
+  await expect.poll(()=>page.evaluate(()=>{
+    if(document.querySelector('#promptText').textContent!=='PRESS')return false;
+    document.querySelector('#btn').dispatchEvent(new PointerEvent('pointerdown',{pointerId:1,bubbles:true}));
+    return true;
+  })).toBe(true);
+  await expect.poll(()=>page.evaluate(()=>window.__vibratePattern)).toEqual([28,20,48]);
+});
+
+test('keeps the dynamic category label directly below the HUD', async ({ page }) => {
+  await openApp(page);
+  await page.click('#gradeSelectBtn');
+  await page.click('.diffBtn[data-mode="explorer"]');
+  await expect(page.locator('#catTag')).toBeVisible();
+  const placement=await page.evaluate(()=>{
+    const hud=document.querySelector('#hud').getBoundingClientRect();
+    const tag=document.querySelector('#catTag').getBoundingClientRect();
+    const machine=document.querySelector('#machine').getBoundingClientRect();
+    return {hudBottom:hud.bottom,tagTop:tag.top,tagBottom:tag.bottom,machineTop:machine.top};
+  });
+  expect(placement.tagTop).toBeGreaterThanOrEqual(placement.hudBottom-2);
+  expect(placement.tagBottom).toBeLessThan(placement.machineTop);
+});
+
 test('dims the scenery and keeps music below feedback volume during play', async ({ page }) => {
-  await page.goto('/');
+  await openApp(page);
   await page.click('.diffBtn[data-mode="classic"]');
   const state=await page.evaluate(() => ({
     active:document.body.classList.contains('game-active'),
@@ -151,7 +211,7 @@ test('dims the scenery and keeps music below feedback volume during play', async
 });
 
 test('opens a responsive music slider and applies its volume', async ({ page }) => {
-  await page.goto('/');
+  await openApp(page);
   await page.click('.diffBtn[data-mode="classic"]');
   await page.click('#musicBtn');
   await expect(page.locator('#volumePanel')).toBeVisible();

@@ -295,7 +295,7 @@
   #livesBox .hudVal{font-size:19px;letter-spacing:.06em}
   .heart{color:#FF4D6D;text-shadow:0 0 10px rgba(255,77,109,.75)}
   .heart.gone{color:transparent;-webkit-text-stroke:1.4px rgba(255,255,255,.34);text-shadow:none}
-  #catTag{position:absolute;top:calc(var(--horizon-y) - var(--size) - 18px);left:0;right:0;
+  #catTag{position:absolute;top:calc(max(10px,env(safe-area-inset-top)) + 68px);left:0;right:0;
     text-align:center;font-size:10px;letter-spacing:.3em;color:var(--accent-soft);font-weight:700;z-index:5;
     transition:color .8s;opacity:.9}
   #exitBtn,#musicBtn,#gradeBackBtn{position:absolute;top:calc(max(10px, env(safe-area-inset-top)) + 68px);
@@ -396,11 +396,16 @@
   /* The warm-up is a short status label, not a normal prompt. Keep it on one balanced line
      and size it against the button face so compact phones never split READY from GET. */
   #btn.readyPrompt #promptText{
-    max-width:88%;white-space:nowrap;
-    font-size:calc(clamp(17px,calc(var(--size) * .089),32px) * var(--prompt-scale,1));
-    letter-spacing:.05em;line-height:1.08
+    top:calc(50% + clamp(19px,calc(var(--size) * .082),26px));
+    max-width:86%;white-space:nowrap;
+    font-size:calc(clamp(17px,calc(var(--size) * .083),30px) * var(--prompt-scale,1));
+    letter-spacing:.065em;line-height:1.08
   }
-  #btn.readyPrompt #promptEmoji{font-size:calc(clamp(18px,calc(var(--size) * .078),30px) * var(--prompt-scale,1))}
+  #btn.readyPrompt #promptEmoji{
+    top:calc(50% - clamp(34px,calc(var(--size) * .135),46px));bottom:auto;
+    font-size:calc(clamp(28px,calc(var(--size) * .15),52px) * var(--prompt-scale,1));
+    filter:drop-shadow(0 3px 8px rgba(0,0,0,.72)) drop-shadow(0 0 10px rgba(255,255,255,.2))
+  }
   #promptSub{max-width:82%;font-family:'Quantico',ui-monospace,monospace;
     font-size:calc(clamp(8px,calc(var(--size) * .026),11px) * var(--prompt-scale,1));color:#F3A8DC;
     letter-spacing:.1em;line-height:1.3;font-weight:700;text-align:center;text-wrap:balance;
@@ -687,7 +692,7 @@
     .hudBox{min-width:0;padding:5px 8px;border-radius:9px}
     .hudLabel{font-size:8px;letter-spacing:.13em}
     .hudVal{font-size:clamp(15px,4.6vw,19px)}
-    #catTag{top:calc(var(--horizon-y) - var(--size) - 14px);font-size:9px;letter-spacing:.2em}
+    #catTag{top:calc(max(10px,env(safe-area-inset-top)) + 52px);font-size:9px;letter-spacing:.2em}
     #exitBtn,#musicBtn{top:calc(max(10px,env(safe-area-inset-top)) + 68px)}
     #volumePanel{
       top:calc(max(10px,env(safe-area-inset-top)) + 68px);
