@@ -74,7 +74,8 @@ const els={app:$('app'),hud:$('hud'),machine:$('machine'),btn:$('btn'),ring:$('r
  score:$('score'),streak:$('streak'),hearts:$('hearts'),banner:$('banner'),rules:$('rules'),
  catTag:$('catTag'),scareEl:$('scare'),scareEmoji:$('scareEmoji'),scareText:$('scareText'),
  start:$('startOverlay'),over:$('overOverlay'),exitBtn:$('exitBtn'),
- musicBtn:$('musicBtn'),themeMusic:$('themeMusic'),quitDialog:$('quitDialog'),
+ musicBtn:$('musicBtn'),themeMusic:$('themeMusic'),volumePanel:$('volumePanel'),
+ volumeSlider:$('volumeSlider'),volumeValue:$('volumeValue'),quitDialog:$('quitDialog'),
  stayBtn:$('stayBtn'),quitBtn:$('quitBtn'),modeHome:$('modeHome'),gradeView:$('gradeView'),
  gradeSelectBtn:$('gradeSelectBtn'),gradeBackBtn:$('gradeBackBtn'),overMenuBtn:$('overMenuBtn')};
 
@@ -92,11 +93,28 @@ for(let i=0;i<32;i++){
 
 /* ------------------- BACKGROUND THEME ------------------- */
 const BG_THEME_KEY='wyp-bg-theme';
+const MUSIC_VOLUME_KEY='wyp-music-volume';
 const themeBtns=document.querySelectorAll('.themeBtn');
 const THEME_TRACK_START={synthwave:0,nebula:32};
+const MAX_MUSIC_VOLUME=.06;
+let musicLevel=.3;
+try{
+  const savedLevel=Number(localStorage.getItem(MUSIC_VOLUME_KEY)??.3);
+  if(Number.isFinite(savedLevel))musicLevel=Math.max(0,Math.min(1,savedLevel));
+}catch{}
 let musicMuted=false;
 let musicSource=null,musicFilter=null,musicGain=null,pendingMusicFade=false;
-els.themeMusic.volume=.05;
+function applyMusicLevel(level){
+  musicLevel=Math.max(0,Math.min(1,level));
+  musicMuted=musicLevel===0;
+  els.themeMusic.volume=MAX_MUSIC_VOLUME*musicLevel;
+  els.themeMusic.muted=musicMuted;
+  els.volumeSlider.value=String(Math.round(musicLevel*100));
+  els.volumeValue.textContent=`${Math.round(musicLevel*100)}%`;
+  try{localStorage.setItem(MUSIC_VOLUME_KEY,String(musicLevel));}catch{}
+  syncMusicButton();
+}
+applyMusicLevel(musicLevel);
 function ensureMusicAudioGraph(){
   if(musicFilter)return;
   try{
@@ -142,12 +160,24 @@ function distortThemeMusic(){
   musicFilter.Q.setValueAtTime(7,now);
   musicFilter.Q.exponentialRampToValueAtTime(.7,now+duration);
 }
+function duckThemeMusic(duration=.9){
+  if(!musicGain||els.themeMusic.paused||musicMuted)return;
+  const now=AC.currentTime;
+  musicGain.gain.cancelScheduledValues(now);
+  musicGain.gain.setValueAtTime(Math.max(.001,musicGain.gain.value),now);
+  musicGain.gain.exponentialRampToValueAtTime(.1,now+.035);
+  musicGain.gain.exponentialRampToValueAtTime(1,now+duration);
+}
+function wrongAnswerHaptic(){
+  try{navigator.vibrate?.([90,45,180]);}catch{}
+}
 function syncMusicButton(){
   const inGame=!els.hud.classList.contains('hidden');
   els.musicBtn.classList.toggle('hidden',!inGame);
   els.musicBtn.classList.toggle('muted',musicMuted);
-  els.musicBtn.setAttribute('aria-label',musicMuted?'Unmute music':'Mute music');
-  els.musicBtn.title=musicMuted?'Unmute music':'Mute music';
+  els.musicBtn.setAttribute('aria-label','Adjust music volume');
+  els.musicBtn.setAttribute('aria-expanded',String(!els.volumePanel.classList.contains('hidden')));
+  els.musicBtn.title='Adjust music volume';
 }
 function applyBgTheme(theme,userInitiated=false){
   document.documentElement.dataset.theme=theme;
@@ -164,11 +194,19 @@ function applyBgTheme(theme,userInitiated=false){
   try{localStorage.setItem(BG_THEME_KEY,theme);}catch{}
 }
 themeBtns.forEach(b=>b.addEventListener('click',()=>applyBgTheme(b.dataset.themeBtn,true)));
-els.musicBtn.addEventListener('click',()=>{
-  musicMuted=!musicMuted;
-  els.themeMusic.muted=musicMuted;
-  if(!musicMuted)playThemeMusic();
+els.musicBtn.addEventListener('click',event=>{
+  event.stopPropagation();
+  els.volumePanel.classList.toggle('hidden');
   syncMusicButton();
+});
+els.volumePanel.addEventListener('click',event=>event.stopPropagation());
+els.volumeSlider.addEventListener('input',()=>{
+  applyMusicLevel(Number(els.volumeSlider.value)/100);
+  if(!musicMuted)playThemeMusic();
+});
+document.addEventListener('click',()=>{
+  if(els.volumePanel.classList.contains('hidden'))return;
+  els.volumePanel.classList.add('hidden');syncMusicButton();
 });
 els.themeMusic.addEventListener('loadedmetadata',()=>{
   const start=THEME_TRACK_START[document.documentElement.dataset.theme]||0;
@@ -202,7 +240,7 @@ let lastRingLit=-1,lastRingColor='';
   // ticks squared off; round caps add RING_W/2 of length at each end, which is what made them read
   // as lozenges. gap is per-side in degrees -- at this radius it leaves each tick ~1.3:1.
   // RING_R/RING_W are in the 100-unit viewBox that spans --size.
-  const NS='http://www.w3.org/2000/svg',cx=50,cy=50,RING_R=46.4,RING_W=4.2,gap=2.6;
+  const NS='http://www.w3.org/2000/svg',cx=50,cy=50,RING_R=45.8,RING_W=3.4,gap=2.9;
   for(let i=0;i<SEGS;i++){
     const a0=(i/SEGS)*2*Math.PI+gap*Math.PI/180,a1=((i+1)/SEGS)*2*Math.PI-gap*Math.PI/180;
     const p=document.createElementNS(NS,'path');
@@ -217,14 +255,14 @@ let lastRingLit=-1,lastRingColor='';
 let curAccent='#FF3E9A';
 function paintRing(frac){
   const lit=Math.ceil(frac*SEGS);
-  const col=frac>0.5?curAccent:frac>0.25?'#FFA23E':'#FF4568';
+  const col=frac>0.5?'#F052FF':frac>0.25?'#FF9A3E':'#FF4568';
   if(lit===lastRingLit&&col===lastRingColor)return;
   lastRingLit=lit;lastRingColor=col;
   segEls.forEach((p,i)=>{
     const active=i<lit;
     // Active tiles are colour-filled; spent tiles retain a dark, low-contrast silhouette.
-    p.setAttribute('stroke',active?col:'rgba(20,6,27,.92)');
-    p.setAttribute('opacity','1');
+    p.setAttribute('stroke',active?col:'rgba(15,4,22,.76)');
+    p.setAttribute('opacity',active?'.92':'.58');
   });
 }
 function setAccent(hex,label){
@@ -286,10 +324,21 @@ function countGraphemes(value){
 // whole stack until it actually clears the button face, whatever the copy turns out to be.
 function fitPromptToFace(){
   const b=els.btn;
+  const stage=b.querySelector('.promptStage');
   b.classList.remove('breakWords');
   b.style.setProperty('--prompt-scale','1');
-  // Too tall, or a word too wide for the line — either one means shrink.
-  const overflows=()=>b.scrollHeight>b.clientHeight+1||els.text.scrollWidth>els.text.clientWidth+1;
+  const syncOffsets=()=>stage.style.setProperty('--prompt-half-height',`${els.text.getBoundingClientRect().height/2}px`);
+  // Details are absolutely anchored around the centred instruction, so inspect their
+  // rendered bounds rather than reserving permanent rows for content that may not exist.
+  const overflows=()=>{
+    syncOffsets();
+    const bounds=stage.getBoundingClientRect();
+    const visible=[els.emoji,els.text,els.sub,els.holdBar].filter(el=>getComputedStyle(el).display!=='none');
+    return els.text.scrollWidth>els.text.clientWidth+1||visible.some(el=>{
+      const box=el.getBoundingClientRect();
+      return box.top<bounds.top-1||box.bottom>bounds.bottom+1||box.left<bounds.left-1||box.right>bounds.right+1;
+    });
+  };
   let scale=1;
   while(scale>0.45 && overflows()){
     scale-=0.07;
@@ -298,6 +347,7 @@ function fitPromptToFace(){
   // Shrinking is always preferable to snapping a word in half, so this only ever applies to copy
   // that still doesn't fit at the floor.
   if(overflows())b.classList.add('breakWords');
+  syncOffsets();
 }
 
 function showPrompt(){
@@ -313,15 +363,18 @@ function showPrompt(){
   G.presses=0;G.holdStart=0;G.holdDone=false;G.phase='live';
   G.dur=it.dur*1000;G.t0=performance.now();G.lastTick=-1;
   const promptLength=(it.text||'').trim().length;
-  els.btn.classList.toggle('longPrompt',promptLength>16);
-  els.btn.classList.toggle('veryLongPrompt',promptLength>34);
+  els.btn.classList.toggle('shortPrompt',promptLength<=12&&!it.emoji&&!it.big);
+  els.btn.classList.toggle('longPrompt',promptLength>18);
+  els.btn.classList.toggle('veryLongPrompt',promptLength>30);
+  els.btn.classList.toggle('withPromptDetails',Boolean(it.emoji||it.big||it.sub));
+  els.btn.classList.toggle('numericPrompt',Boolean(it.big));
   els.text.textContent=it.text;
   const emojiValue=it.big||it.emoji||'';
   const emojiCount=it.big?1:countGraphemes(emojiValue);
   els.emoji.textContent=emojiValue;
   els.emoji.classList.toggle('manyEmoji',emojiCount>4);
   els.emoji.classList.toggle('denseEmoji',emojiCount>7);
-  els.emoji.style.fontSize=it.big?'calc(clamp(44px,13vw,68px) * var(--prompt-scale,1))':'';
+  els.emoji.style.fontSize='';
   els.sub.textContent=it.sub||'';
   els.btn.classList.toggle('holdPrompt',it.type==='hold');
   els.holdFill.style.width='0%';
@@ -408,7 +461,7 @@ function succeed(msg){
     beep(880,.1,'triangle',.06,.2);
   }
   els.score.textContent=G.score;els.streak.textContent='×'+G.streak;
-  flash(true,`+${pts} • ${msg}${extra}`);sOk();
+  flash(true,`+${pts} • ${msg}${extra}`);duckThemeMusic(.7);sOk();
   next(620);
 }
 function fail(reason){
@@ -416,7 +469,7 @@ function fail(reason){
   els.btn.classList.remove('holding');els.scareEl.classList.remove('show');
   G.streak=0;G.lives--;els.streak.textContent='×0';
   setHearts(G.lives);
-  flash(false,reason);distortThemeMusic();sBad();
+  flash(false,reason);duckThemeMusic(1.1);distortThemeMusic();wrongAnswerHaptic();sBad();
   els.app.classList.add('shake');setTimeout(()=>els.app.classList.remove('shake'),380);
   if(G.lives<=0){G.endTO=setTimeout(()=>{if(G.phase==='fb')endGame(false,reason);},750);}
   else next(1050);
@@ -435,6 +488,7 @@ function next(delay){
 
 function endGame(won,reason){
   G.phase='over';
+  document.body.classList.remove('game-active');
   const previousBest=BESTS[G.mode.key]||0;
   const isNewBest=G.score>previousBest;
   if(isNewBest){BESTS[G.mode.key]=G.score;saveBests();}
@@ -442,6 +496,7 @@ function endGame(won,reason){
   els.machine.classList.add('hidden');els.hud.classList.add('hidden');
   els.rules.classList.add('hidden');els.catTag.classList.add('hidden');
   els.musicBtn.classList.add('hidden');
+  els.volumePanel.classList.add('hidden');
   els.exitBtn.classList.add('hidden');
   $('overTitle').textContent=won?'YOU WIN':'MACHINE WINS';
   $('modeBadge').textContent=(G.mode.key==='classic'?'RANDOM':G.mode.label)+' MODE';
@@ -498,6 +553,7 @@ function showGradeModes(){
 function quitToMenu(){
   if(!G||G.phase!=='confirm')return;
   G.phase='over';
+  document.body.classList.remove('game-active');
   cancelAnimationFrame(G.raf);
   clearTimeout(G.scareTO);clearTimeout(G.nextTO);clearTimeout(G.endTO);
   els.scareEl.classList.remove('show');
@@ -506,6 +562,7 @@ function quitToMenu(){
   els.machine.classList.add('hidden');els.hud.classList.add('hidden');
   els.rules.classList.add('hidden');els.catTag.classList.add('hidden');els.exitBtn.classList.add('hidden');
   els.musicBtn.classList.add('hidden');
+  els.volumePanel.classList.add('hidden');
   els.quitDialog.classList.add('hidden');
   els.over.classList.add('hidden');
   els.start.classList.remove('hidden');
@@ -521,22 +578,26 @@ let lastMode='classic';
 function startGame(modeKey){
   const mode = MODES[modeKey] || MODES.challenger;
   lastMode = mode.key;
+  document.body.classList.add('game-active');
   els.start.classList.add('hidden');els.over.classList.add('hidden');
   newGame(mode);
   els.machine.classList.remove('hidden');els.hud.classList.remove('hidden');
   els.rules.classList.remove('hidden');els.exitBtn.classList.remove('hidden');
   playThemeMusic();syncMusicButton();
   els.catTag.classList.toggle('hidden', !mode.features.dynamicAccent);
-  els.btn.classList.remove('longPrompt','veryLongPrompt','holdPrompt','breakWords');
+  els.btn.classList.remove('shortPrompt','longPrompt','veryLongPrompt','withPromptDetails','numericPrompt','holdPrompt','breakWords');
   els.btn.classList.add('readyPrompt');
   els.btn.style.setProperty('--prompt-scale','1');
   els.emoji.classList.remove('manyEmoji','denseEmoji');
-  els.text.textContent='GET READY…';els.emoji.textContent=mode.emoji;els.sub.textContent='';
+  els.text.textContent='GET READY';els.emoji.textContent=mode.emoji;els.sub.textContent='';
+  els.btn.classList.add('withPromptDetails');
+  fitPromptToFace();
   setAccent(mode.features.dynamicAccent?'#FF3E9A':'#B24BF3','WARM-UP');paintRing(1);
   beep(520,.1);beep(660,.1,'square',.05,.15);
   G.nextTO=setTimeout(showPrompt,900);
 }
 function returnToMainMenu(){
+  document.body.classList.remove('game-active');
   els.over.classList.add('hidden');
   els.start.classList.remove('hidden');
   showModeHome();

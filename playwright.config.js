@@ -21,6 +21,8 @@ export default defineConfig({
     { name: 'webkit', use: { ...devices['Desktop Safari'] } },
     { name: 'mobile-chromium', use: { ...devices['Pixel 5'] } },
     { name: 'mobile-webkit', use: { ...devices['iPhone 13'] } },
+    { name: 'mobile-xr-webkit', use: { ...devices['iPhone XR'] } },
+    { name: 'mobile-small-webkit', use: { ...devices['iPhone SE'] } },
     { name: 'tablet-webkit', use: { ...devices['iPad Pro 11 landscape'] } },
   ],
 });

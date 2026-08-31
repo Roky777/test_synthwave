@@ -17,6 +17,7 @@
     --ink:#FFF4F8; --dim:#CDA0C7;
     --size:min(76vw,52dvh,420px); /* machine diameter — 76vw puts the dash ring at ~73% of width, per the board */
     --machine-offset:-2dvh;
+    --gameplay-shift:0px;
 
     /* ===== BACKGROUND DECOR CONFIG — every knob for position/size/z-index lives here ===== */
     /* Nebula theme: corner black hole */
@@ -25,7 +26,7 @@
     --blackhole-z:0;
 
     /* Synthwave theme: the machine, sun, skyline baseline and floor share one horizon */
-    --horizon-y:calc(50% + var(--machine-offset) + (var(--size) / 2));
+    --horizon-y:calc(50% + var(--machine-offset) + var(--gameplay-shift) + (var(--size) / 2));
     --sun-size:calc(var(--size) * 2.18);  /* extends behind the full timer ring so no segment looks detached */
     --sun-gap:0px;                        /* offset from --horizon; 0 = centered on it */
     --sun-arc:100%;                       /* how much of the sun's height to draw, from the top down.
@@ -261,6 +262,11 @@
   html[data-theme="synthwave"] #grid{opacity:1}
   html[data-theme="synthwave"] #skyline{opacity:.72}
   html[data-theme="synthwave"] #bgFx{background:linear-gradient(180deg,var(--space-1) 0%,var(--space-2) 100%)}
+  /* During a run, quiet the scenery so the interactive orb is always the visual focal point. */
+  body.game-active{--scene-scrim:.58;--sun-tint-strength:.68;--gameplay-shift:18px}
+  html[data-theme="synthwave"] body.game-active #sun{opacity:.42}
+  html[data-theme="synthwave"] body.game-active #skyline{opacity:.27}
+  html[data-theme="synthwave"] body.game-active #grid{opacity:.56}
 
   .bolt{position:fixed;width:26px;height:26px;border-radius:50%;z-index:1;pointer-events:none;
     background:
@@ -285,19 +291,19 @@
   /* Screen 3: each box carries its own neon colour on border, label and value. */
   .hudBox{--hue:var(--orb-ring);background:rgba(12,4,20,.72);border:2px solid var(--hue);
     flex:1 1 0;min-width:0;text-align:center;border-radius:12px;padding:7px 8px;backdrop-filter:blur(4px);
-    box-shadow:0 0 12px color-mix(in srgb, var(--hue) 45%, transparent),
-               inset 0 0 12px color-mix(in srgb, var(--hue) 16%, transparent);
+    box-shadow:0 0 10px color-mix(in srgb, var(--hue) 32%, transparent),
+               inset 0 0 10px color-mix(in srgb, var(--hue) 10%, transparent);
     transition:border-color .8s}
   .hudLabel{font-size:11px;letter-spacing:.16em;color:var(--hue);font-weight:700;font-style:italic}
   .hudVal{font-family:'Quantico',ui-monospace,monospace;font-variant-numeric:tabular-nums;
     font-size:21px;font-weight:700;line-height:1.15;color:var(--hue);
-    text-shadow:0 0 10px color-mix(in srgb, var(--hue) 60%, transparent)}
+    text-shadow:0 0 8px color-mix(in srgb, var(--hue) 45%, transparent)}
   #streakBox{--hue:var(--amber)}
   #livesBox{--hue:var(--orb-bezel)}
   #livesBox .hudVal{font-size:19px;letter-spacing:.06em}
   .heart{color:#FF4D6D;text-shadow:0 0 10px rgba(255,77,109,.75)}
   .heart.gone{color:transparent;-webkit-text-stroke:1.4px rgba(255,255,255,.34);text-shadow:none}
-  #catTag{position:absolute;top:calc(max(10px, env(safe-area-inset-top)) + 58px);left:0;right:0;
+  #catTag{position:absolute;top:calc(var(--horizon-y) - var(--size) - 18px);left:0;right:0;
     text-align:center;font-size:10px;letter-spacing:.3em;color:var(--accent-soft);font-weight:700;z-index:5;
     transition:color .8s;opacity:.9}
   #exitBtn,#musicBtn,#gradeBackBtn{position:absolute;top:calc(max(10px, env(safe-area-inset-top)) + 68px);
@@ -318,10 +324,22 @@
   #exitBtn:active,#musicBtn:active,#gradeBackBtn:active{transform:scale(.88)}
   #musicBtn.muted{opacity:.58}
   #musicBtn.muted::after{content:"";position:absolute;width:22px;height:2px;border-radius:2px;background:currentColor;transform:rotate(-45deg)}
+  #volumePanel{position:absolute;z-index:7;
+    top:calc(max(10px,env(safe-area-inset-top)) + 68px);
+    right:calc(max(12px,env(safe-area-inset-right)) + 56px);
+    width:min(230px,calc(100vw - 132px));height:44px;padding:3px 12px;border-radius:12px;
+    border:1.5px solid var(--orb-bezel);background:rgba(10,4,20,.94);
+    box-shadow:0 0 16px color-mix(in srgb,var(--orb-bezel) 38%,transparent),0 8px 24px rgba(0,0,0,.55)}
+  #volumePanel label{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;
+    color:#E9FCFF;font-size:10px;font-weight:700;letter-spacing:.12em}
+  #volumeValue{color:var(--orb-bezel);font-variant-numeric:tabular-nums}
+  #volumeSlider{display:block;width:100%;height:17px;margin:0;accent-color:var(--orb-ring);cursor:pointer;touch-action:pan-x}
 
   /* MACHINE */
   #machine{position:relative;width:var(--size);height:var(--size);display:flex;
-    top:var(--machine-offset);align-items:center;justify-content:center;z-index:2;flex-shrink:0;transition:transform .28s cubic-bezier(.34,1.56,.64,1)}
+    top:calc(var(--machine-offset) + var(--gameplay-shift));align-items:center;justify-content:center;z-index:2;flex-shrink:0;
+    background:radial-gradient(ellipse 48% 46% at 50% 50%,rgba(2,0,6,.82) 0 57%,rgba(3,0,8,.56) 70%,rgba(3,0,8,.18) 83%,transparent 100%);
+    transition:transform .28s cubic-bezier(.34,1.56,.64,1)}
   #machine.tiny{transform:scale(.52)}
   /* Dark well behind the orb (export: circle r=118.25, #110519 + cyan hairline) */
   #machine::before{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
@@ -342,56 +360,67 @@
                inset 0 0 12px color-mix(in srgb, var(--orb-ring) 45%, transparent)}
   /* Countdown segments, drawn in the export's outer cyan band */
   #ringSvg{position:absolute;inset:0;transform:rotate(-90deg);pointer-events:none;z-index:2;
-    filter:drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 55%, transparent))}
+    filter:drop-shadow(0 0 4px color-mix(in srgb, var(--accent) 42%, transparent))}
   #btn{
     position:relative;z-index:4;width:var(--orb-face-d);height:var(--orb-face-d);
     min-width:0;min-height:0;flex:none;aspect-ratio:1;
     overflow:hidden;border-radius:50%;border:none;cursor:pointer;
     background:
-      radial-gradient(ellipse 39% 24% at 50% 29%, color-mix(in srgb, var(--orb-glow) 20%, transparent), transparent 72%),
+      radial-gradient(ellipse 42% 27% at 50% 29%, color-mix(in srgb, var(--orb-glow) 28%, transparent), transparent 72%),
       radial-gradient(ellipse 39% 24% at 50% 74%, rgba(5,1,8,.55), transparent 72%),
-      radial-gradient(circle at 50% 50%, var(--orb-face-1) 0%, var(--orb-face-2) 60%, var(--orb-face-3) 100%);
+      radial-gradient(circle at 50% 45%,#69247D 0%,var(--orb-face-2) 57%,#100318 100%);
     box-shadow:
       inset 0 0 0 1px var(--orb-rim),
       inset 0 -14px 34px rgba(0,0,0,.6),
-      0 18px 50px rgba(0,0,0,.85),
-      0 0 60px color-mix(in srgb, var(--accent) 26%, transparent);
-    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
-    padding:8%;transition:transform .06s ease, box-shadow .5s ease;
+      0 18px 42px rgba(0,0,0,.9),
+      0 0 38px color-mix(in srgb, var(--accent) 32%, transparent);
+    display:grid;place-items:center;padding:0;transition:transform .06s ease, box-shadow .5s ease;
     touch-action:none;outline:none;
   }
-  #promptEmoji,#promptText,#promptSub,#holdBar{position:relative;z-index:1}
+  .promptStage{--prompt-half-height:20px;--detail-gap:clamp(4px,calc(var(--size) * .016),7px);
+    position:relative;z-index:1;width:88%;height:82%}
+  #promptEmoji,#promptText,#promptSub,#holdBar{position:absolute;z-index:1;left:50%}
+  #promptText{top:50%;transform:translate(-50%,-50%);width:100%}
+  #promptEmoji{bottom:calc(50% + var(--prompt-half-height) + var(--detail-gap));transform:translateX(-50%)}
+  #promptSub{top:calc(50% + var(--prompt-half-height) + var(--detail-gap));transform:translateX(-50%);width:100%}
+  #holdBar{bottom:4%;transform:translateX(-50%)}
   #btn:focus-visible{outline:3px solid var(--accent-soft);outline-offset:6px}
   #btn.pressed{transform:scale(.955)}
   #btn.flashOk{box-shadow:inset 0 0 0 2px var(--ok),inset 0 -14px 34px rgba(0,0,0,.6),0 0 90px rgba(51,214,166,.6)}
   #btn.flashBad{box-shadow:inset 0 0 0 2px var(--bad),inset 0 -14px 34px rgba(0,0,0,.6),0 0 100px rgba(255,69,104,.7)}
   #btn.holding{box-shadow:inset 0 0 0 3px var(--amber),inset 0 -14px 34px rgba(0,0,0,.6),0 0 90px rgba(255,162,62,.6)}
-  #promptEmoji{font-size:calc(clamp(16px,calc(var(--size) * 0.14),52px) * var(--prompt-scale,1));line-height:1;
-    filter:drop-shadow(0 0 14px rgba(255,255,255,.35))}
+  #promptEmoji{font-size:calc(clamp(18px,calc(var(--size) * .105),44px) * var(--prompt-scale,1));line-height:1;
+    filter:drop-shadow(0 3px 9px rgba(0,0,0,.7)) drop-shadow(0 0 8px rgba(255,255,255,.22))}
   /* Most prompts carry no emoji and no sub-label. Reserving a line for them (min-height:1em) left
      unequal dead space above and below the text, so it could never optically centre in the circle. */
   #promptEmoji:empty,#promptSub:empty{display:none}
   #promptText{font-weight:700;text-align:center;color:#fff;
-    font-size:calc(clamp(15px,calc(var(--size) * 0.108),36px) * var(--prompt-scale,1));letter-spacing:.06em;line-height:1.25;
-    text-shadow:0 2px 4px #000,0 0 10px rgba(255,255,255,.62),0 0 28px color-mix(in srgb, var(--accent) 68%, transparent);
-    max-width:88%;text-wrap:balance;overflow-wrap:normal}
+    font-size:calc(clamp(15px,calc(var(--size) * .092),33px) * var(--prompt-scale,1));letter-spacing:.04em;line-height:1.16;
+    text-shadow:0 2px 4px #000,0 0 6px rgba(255,255,255,.72),0 0 16px color-mix(in srgb, var(--accent) 72%, transparent);
+    max-width:82%;text-wrap:balance;overflow-wrap:normal;hyphens:none}
+  #btn.shortPrompt #promptText{max-width:84%;
+    font-size:calc(clamp(18px,calc(var(--size) * .108),38px) * var(--prompt-scale,1));
+    letter-spacing:.055em;line-height:1.08}
   /* The warm-up is a short status label, not a normal prompt. Keep it on one balanced line
      and size it against the button face so compact phones never split READY from GET. */
   #btn.readyPrompt #promptText{
-    max-width:92%;white-space:nowrap;
-    font-size:calc(clamp(14px,calc(var(--size) * .058),24px) * var(--prompt-scale,1));
-    letter-spacing:.025em;line-height:1
+    max-width:88%;white-space:nowrap;
+    font-size:calc(clamp(17px,calc(var(--size) * .089),32px) * var(--prompt-scale,1));
+    letter-spacing:.05em;line-height:1.08
   }
-  #promptSub{font-family:'Quantico',ui-monospace,monospace;font-size:calc(clamp(9px,calc(var(--size) * 0.03),11px) * var(--prompt-scale,1));color:#F3A8DC;
-    letter-spacing:.18em;font-weight:700;text-align:center;text-shadow:0 1px 3px #000;transition:color .8s}
-  #btn.longPrompt{gap:6px;padding:6%}
-  #btn.longPrompt #promptEmoji{font-size:calc(clamp(24px,calc(var(--size) * .1),40px) * var(--prompt-scale,1))}
-  #btn.longPrompt #promptText{font-size:calc(clamp(13px,calc(var(--size) * .07),25px) * var(--prompt-scale,1));letter-spacing:.025em;line-height:1.18;max-width:82%;overflow-wrap:normal}
-  #btn.longPrompt #promptSub{font-size:calc(clamp(8px,calc(var(--size) * .025),10px) * var(--prompt-scale,1));letter-spacing:.14em}
-  #btn.veryLongPrompt{gap:4px;padding:4%}
-  #btn.veryLongPrompt #promptEmoji{font-size:calc(clamp(18px,calc(var(--size) * .078),30px) * var(--prompt-scale,1))}
-  #btn.veryLongPrompt #promptText{font-size:calc(clamp(11px,calc(var(--size) * .052),19px) * var(--prompt-scale,1));letter-spacing:.01em;line-height:1.12;max-width:76%}
-  #btn.veryLongPrompt #promptSub{font-size:calc(8px * var(--prompt-scale,1));letter-spacing:.1em}
+  #btn.readyPrompt #promptEmoji{font-size:calc(clamp(18px,calc(var(--size) * .078),30px) * var(--prompt-scale,1))}
+  #promptSub{max-width:82%;font-family:'Quantico',ui-monospace,monospace;
+    font-size:calc(clamp(8px,calc(var(--size) * .026),11px) * var(--prompt-scale,1));color:#F3A8DC;
+    letter-spacing:.1em;line-height:1.3;font-weight:700;text-align:center;text-wrap:balance;
+    text-shadow:0 1px 3px #000,0 0 8px rgba(243,168,220,.28);transition:color .8s}
+  #btn.numericPrompt #promptEmoji{font-size:calc(clamp(38px,calc(var(--size) * .16),64px) * var(--prompt-scale,1));
+    color:#fff;text-shadow:0 2px 4px #000,0 0 14px color-mix(in srgb,var(--accent) 70%,transparent);filter:none}
+  #btn.longPrompt #promptEmoji{font-size:calc(clamp(18px,calc(var(--size) * .078),31px) * var(--prompt-scale,1))}
+  #btn.longPrompt #promptText{font-size:calc(clamp(13px,calc(var(--size) * .075),27px) * var(--prompt-scale,1));letter-spacing:.025em;line-height:1.16;max-width:84%;overflow-wrap:normal}
+  #btn.longPrompt #promptSub{font-size:calc(clamp(8px,calc(var(--size) * .024),10px) * var(--prompt-scale,1));letter-spacing:.085em}
+  #btn.veryLongPrompt #promptEmoji{font-size:calc(clamp(16px,calc(var(--size) * .066),26px) * var(--prompt-scale,1))}
+  #btn.veryLongPrompt #promptText{font-size:calc(clamp(11px,calc(var(--size) * .06),22px) * var(--prompt-scale,1));letter-spacing:.012em;line-height:1.14;max-width:84%}
+  #btn.veryLongPrompt #promptSub{font-size:calc(8px * var(--prompt-scale,1));letter-spacing:.07em;line-height:1.25}
   /* display, not visibility — hidden still occupies its box and one flex gap. */
   #holdBar{width:60%;height:6px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden;
     display:none}
@@ -654,6 +683,9 @@
   @media (max-width: 480px){
     :root{
       --size:min(74vw,48dvh,360px);
+      /* One reference pixel from the 375x667 iPhone SE composition. Scale the
+         complete composition uniformly by its tightest viewport dimension. */
+      --landing-u:min(.266667vw,.149925dvh);
       --machine-offset:-5dvh;
       --skyline-height:clamp(60px,11vh,90px);
       --grid-cell:68px;
@@ -663,8 +695,13 @@
     .hudBox{min-width:0;padding:5px 8px;border-radius:9px}
     .hudLabel{font-size:8px;letter-spacing:.13em}
     .hudVal{font-size:clamp(15px,4.6vw,19px)}
-    #catTag{top:calc(max(10px,env(safe-area-inset-top)) + 52px);font-size:9px;letter-spacing:.2em}
+    #catTag{top:calc(var(--horizon-y) - var(--size) - 14px);font-size:9px;letter-spacing:.2em}
     #exitBtn,#musicBtn{top:calc(max(10px,env(safe-area-inset-top)) + 68px)}
+    #volumePanel{
+      top:calc(max(10px,env(safe-area-inset-top)) + 68px);
+      right:calc(max(10px,env(safe-area-inset-right)) + 54px);
+      width:min(230px,calc(100vw - 124px))
+    }
     #rules{bottom:max(10px,env(safe-area-inset-bottom));gap:5px;padding:0 8px}
     .chip{padding:4px 8px;font-size:10px;letter-spacing:.035em}
     #btn{gap:7px}
@@ -680,6 +717,30 @@
     .diffBtn small{font-size:10px}
     .diffBtn .em{font-size:22px}
     .themeBtn{min-height:48px}
+    /* Centre one uniformly scaled composition; individual assets never drift apart. */
+    #startOverlay:has(#modeHome:not(.hidden)){
+      align-content:center;row-gap:calc(10 * var(--landing-u));
+      padding:max(8px,env(safe-area-inset-top)) 14px max(8px,env(safe-area-inset-bottom))
+    }
+    #startOverlay:has(#modeHome:not(.hidden))>.wordmark{
+      font-size:calc(46 * var(--landing-u));line-height:.94
+    }
+    #startOverlay:has(#modeHome:not(.hidden))>.tagline{font-size:calc(10 * var(--landing-u));line-height:1.25}
+    #startOverlay:has(#modeHome:not(.hidden))>.heroOrb{
+      /* The SVG canvas includes transparent padding; 306u renders its visible orb at 228u. */
+      width:calc(306 * var(--landing-u));margin-top:0
+    }
+    #modeHome{margin-top:calc(-16 * var(--landing-u))}
+    #modeHome .diffRow{width:calc(315 * var(--landing-u));gap:calc(10 * var(--landing-u))}
+    #modeHome .diffBtn{
+      height:calc(69 * var(--landing-u));padding:calc(8 * var(--landing-u)) calc(14 * var(--landing-u));
+      gap:calc(12 * var(--landing-u));border-radius:calc(17 * var(--landing-u))
+    }
+    #modeHome .modeIcon{width:calc(44 * var(--landing-u));height:calc(44 * var(--landing-u))}
+    #modeHome .modeText{font-size:calc(15 * var(--landing-u));letter-spacing:.01em;white-space:nowrap}
+    #modeHome .diffBtn small{font-size:calc(9 * var(--landing-u));margin-top:calc(3 * var(--landing-u))}
+    #modeHome .chev{font-size:calc(22 * var(--landing-u))}
+    #modeHome .modeText small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   }
   @media (max-width: 360px){
     :root{--size:min(72vw,45dvh,320px)}
@@ -712,6 +773,11 @@
     box-shadow:0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent),
       0 0 14px color-mix(in srgb, var(--grid) 38%, transparent),
       inset 0 0 20px color-mix(in srgb, var(--grid) 12%, transparent);
+  }
+  html[data-theme="synthwave"] body.game-active #app{
+    border-width:1px;border-color:color-mix(in srgb,var(--grid) 38%,transparent);
+    box-shadow:0 0 8px color-mix(in srgb,var(--grid) 18%,transparent),
+      inset 0 0 12px color-mix(in srgb,var(--grid) 6%,transparent)
   }
   html[data-theme="synthwave"] .hudBox{
     background:rgba(10,4,16,.55);border-width:2px;border-radius:14px;
@@ -753,6 +819,7 @@
     .hudVal{font-size:22px}
     #hud{width:min(620px,calc(100% - 148px))}
     #exitBtn,#musicBtn{top:max(10px,env(safe-area-inset-top))}
+    #volumePanel{top:max(10px,env(safe-area-inset-top));right:max(74px,calc(50% - 334px))}
     #exitBtn{left:max(18px,calc(50% - 390px))}
     #musicBtn{right:max(18px,calc(50% - 390px))}
     #rules{padding:0 24px}
@@ -784,6 +851,7 @@
     .hudVal{font-size:24px}
     #catTag{font-size:11px}
     #exitBtn,#musicBtn{top:max(10px,env(safe-area-inset-top))}
+    #volumePanel{top:max(10px,env(safe-area-inset-top));right:max(84px,calc(50% - 384px))}
     #exitBtn{left:max(28px,calc(50% - 440px))}
     #musicBtn{right:max(28px,calc(50% - 440px))}
     #banner{font-size:24px}
@@ -884,6 +952,10 @@
   <div id="catTag" class="hidden"></div>
   <button id="exitBtn" class="hidden" aria-label="Return to main menu" title="Return to main menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6"/></svg></button>
   <button id="musicBtn" class="hidden" aria-label="Mute music" title="Mute music"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor" stroke="none"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg></button>
+  <div id="volumePanel" class="hidden">
+    <label for="volumeSlider"><span>MUSIC</span><span id="volumeValue">30%</span></label>
+    <input id="volumeSlider" type="range" min="0" max="100" step="1" value="30" aria-label="Music volume">
+  </div>
 
   <div id="banner"></div>
 
@@ -901,10 +973,12 @@
   <div id="machine" class="hidden">
     <svg id="ringSvg" viewBox="0 0 100 100"></svg>
     <button id="btn" aria-label="The Button">
-      <div id="promptEmoji"></div>
-      <div id="promptText">PRESS</div>
-      <div id="promptSub"></div>
-      <div id="holdBar"><div id="holdFill"></div></div>
+      <div class="promptStage">
+        <div id="promptEmoji"></div>
+        <div id="promptText">PRESS</div>
+        <div id="promptSub"></div>
+        <div id="holdBar"><div id="holdFill"></div></div>
+      </div>
     </button>
   </div>
 
