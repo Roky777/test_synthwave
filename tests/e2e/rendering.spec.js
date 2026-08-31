@@ -160,7 +160,7 @@ test('requests haptic feedback after a wrong answer', async ({ page }) => {
     document.querySelector('#btn').dispatchEvent(new PointerEvent('pointerdown',{pointerId:1,bubbles:true}));
     return true;
   })).toBe(true);
-  await expect.poll(()=>page.evaluate(()=>window.__vibratePattern)).toEqual([90,45,180]);
+  await expect.poll(()=>page.evaluate(()=>window.__vibratePattern)).toEqual([180,60,260,70,320]);
 });
 
 test('requests a lighter haptic pattern after a correct answer', async ({ page }) => {

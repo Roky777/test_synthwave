@@ -173,7 +173,7 @@ function vibrate(pattern){
 }
 const tapHaptic=()=>vibrate(16);
 const correctAnswerHaptic=()=>vibrate([28,20,48]);
-const wrongAnswerHaptic=()=>vibrate([90,45,180]);
+const wrongAnswerHaptic=()=>vibrate([180,60,260,70,320]);
 function syncMusicButton(){
   const inGame=!els.hud.classList.contains('hidden');
   els.musicBtn.classList.toggle('hidden',!inGame);
