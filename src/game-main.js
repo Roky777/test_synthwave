@@ -169,7 +169,11 @@ function duckThemeMusic(duration=.9){
   musicGain.gain.exponentialRampToValueAtTime(1,now+duration);
 }
 function vibrate(pattern){
-  try{return navigator.vibrate?.(pattern)??false;}catch{return false;}
+  try{
+    if(typeof navigator.vibrate!=='function')return false;
+    navigator.vibrate(0);
+    return navigator.vibrate(pattern);
+  }catch{return false;}
 }
 const tapHaptic=()=>vibrate(16);
 const correctAnswerHaptic=()=>vibrate([28,20,48]);
@@ -417,9 +421,10 @@ function showPrompt(){
 function onPressDown(){
   if(G.phase!=='live')return;
   els.btn.classList.add('pressed');setTimeout(()=>els.btn.classList.remove('pressed'),70);
+  tapHaptic();
   const it=G.seq[G.i];
-  if(it.expected==='hold'){ if(!G.holdStart){G.holdStart=performance.now();els.btn.classList.add('holding');tapHaptic();sTap();} return; }
-  if(it.expected==='multi'){G.presses++;tapHaptic();sTap();return;}
+  if(it.expected==='hold'){ if(!G.holdStart){G.holdStart=performance.now();els.btn.classList.add('holding');sTap();} return; }
+  if(it.expected==='multi'){G.presses++;sTap();return;}
   if(it.expected==='press') succeed(it.type==='boss'?'BOSS DOWN!':'PRESSED IN TIME');
   else fail(it.type==='remember'?'IT SAID JUST REMEMBER!':
             it.type==='scare'?'THE GHOST GOT YOU! IT SAID DON\'T PRESS!':
