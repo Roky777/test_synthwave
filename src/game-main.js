@@ -74,8 +74,9 @@ const els={app:$('app'),hud:$('hud'),machine:$('machine'),btn:$('btn'),ring:$('r
  score:$('score'),streak:$('streak'),hearts:$('hearts'),banner:$('banner'),rules:$('rules'),
  catTag:$('catTag'),scareEl:$('scare'),scareEmoji:$('scareEmoji'),scareText:$('scareText'),
  start:$('startOverlay'),over:$('overOverlay'),exitBtn:$('exitBtn'),
- musicBtn:$('musicBtn'),themeMusic:$('themeMusic'),volumePanel:$('volumePanel'),
- volumeSlider:$('volumeSlider'),volumeValue:$('volumeValue'),quitDialog:$('quitDialog'),
+ musicBtn:$('musicBtn'),themeMusic:$('themeMusic'),startAudioBtn:$('startAudioBtn'),
+ startVolumePanel:$('startVolumePanel'),startMuteToggle:$('startMuteToggle'),startVolumeSlider:$('startVolumeSlider'),
+ startVolumeValue:$('startVolumeValue'),quitDialog:$('quitDialog'),
  stayBtn:$('stayBtn'),quitBtn:$('quitBtn'),modeHome:$('modeHome'),gradeView:$('gradeView'),
  gradeSelectBtn:$('gradeSelectBtn'),gradeBackBtn:$('gradeBackBtn'),overMenuBtn:$('overMenuBtn')};
 
@@ -94,6 +95,7 @@ for(let i=0;i<32;i++){
 /* ------------------- BACKGROUND THEME ------------------- */
 const BG_THEME_KEY='wyp-bg-theme';
 const MUSIC_VOLUME_KEY='wyp-music-volume';
+const MUSIC_MUTED_KEY='wyp-music-muted';
 const themeBtns=document.querySelectorAll('.themeBtn');
 const THEME_TRACK_START={synthwave:0,nebula:32};
 const MAX_MUSIC_VOLUME=.06;
@@ -103,18 +105,36 @@ try{
   if(Number.isFinite(savedLevel))musicLevel=Math.max(0,Math.min(1,savedLevel));
 }catch{}
 let musicMuted=false;
+try{musicMuted=localStorage.getItem(MUSIC_MUTED_KEY)==='1';}catch{}
+if(musicLevel===0)musicMuted=true;
 let musicSource=null,musicFilter=null,musicGain=null,pendingMusicFade=false;
-function applyMusicLevel(level){
+function syncMusicControls(){
+  const percent=Math.round(musicLevel*100);
+  els.startVolumeSlider.value=String(percent);
+  els.startVolumeValue.textContent=`${percent}%`;
+  els.startMuteToggle.textContent=musicMuted?'PLAY':'MUTE';
+  els.startAudioBtn.classList.toggle('muted',musicMuted);
+}
+function applyMusicLevel(level,unmute=true){
   musicLevel=Math.max(0,Math.min(1,level));
-  musicMuted=musicLevel===0;
+  if(musicLevel===0)musicMuted=true;
+  else if(unmute)musicMuted=false;
   els.themeMusic.volume=MAX_MUSIC_VOLUME*musicLevel;
   els.themeMusic.muted=musicMuted;
-  els.volumeSlider.value=String(Math.round(musicLevel*100));
-  els.volumeValue.textContent=`${Math.round(musicLevel*100)}%`;
-  try{localStorage.setItem(MUSIC_VOLUME_KEY,String(musicLevel));}catch{}
+  syncMusicControls();
+  try{
+    localStorage.setItem(MUSIC_VOLUME_KEY,String(musicLevel));
+    localStorage.setItem(MUSIC_MUTED_KEY,musicMuted?'1':'0');
+  }catch{}
   syncMusicButton();
 }
-applyMusicLevel(musicLevel);
+applyMusicLevel(musicLevel,false);
+function toggleMusicPlayback(){
+  if(musicMuted&&musicLevel===0)musicLevel=.3;
+  musicMuted=!musicMuted;
+  applyMusicLevel(musicLevel,false);
+  if(musicMuted)els.themeMusic.pause();else playThemeMusic();
+}
 function ensureMusicAudioGraph(){
   if(musicFilter)return;
   try{
@@ -184,9 +204,8 @@ function syncMusicButton(){
   const inGame=!els.hud.classList.contains('hidden');
   els.musicBtn.classList.toggle('hidden',!inGame);
   els.musicBtn.classList.toggle('muted',musicMuted);
-  els.musicBtn.setAttribute('aria-label','Adjust music volume');
-  els.musicBtn.setAttribute('aria-expanded',String(!els.volumePanel.classList.contains('hidden')));
-  els.musicBtn.title='Adjust music volume';
+  els.musicBtn.setAttribute('aria-label',musicMuted?'Play music':'Mute music');
+  els.musicBtn.title=musicMuted?'Play music':'Mute music';
 }
 function applyBgTheme(theme,userInitiated=false){
   document.documentElement.dataset.theme=theme;
@@ -205,17 +224,23 @@ function applyBgTheme(theme,userInitiated=false){
 themeBtns.forEach(b=>b.addEventListener('click',()=>applyBgTheme(b.dataset.themeBtn,true)));
 els.musicBtn.addEventListener('click',event=>{
   event.stopPropagation();
-  els.volumePanel.classList.toggle('hidden');
-  syncMusicButton();
+  toggleMusicPlayback();
 });
-els.volumePanel.addEventListener('click',event=>event.stopPropagation());
-els.volumeSlider.addEventListener('input',()=>{
-  applyMusicLevel(Number(els.volumeSlider.value)/100);
+els.startAudioBtn.addEventListener('click',event=>{
+  event.stopPropagation();
+  els.startVolumePanel.classList.toggle('hidden');
+  els.startAudioBtn.setAttribute('aria-expanded',String(!els.startVolumePanel.classList.contains('hidden')));
+});
+els.startVolumePanel.addEventListener('click',event=>event.stopPropagation());
+els.startVolumeSlider.addEventListener('input',()=>{
+  applyMusicLevel(Number(els.startVolumeSlider.value)/100);
   if(!musicMuted)playThemeMusic();
 });
+els.startMuteToggle.addEventListener('click',event=>{event.stopPropagation();toggleMusicPlayback();});
 document.addEventListener('click',()=>{
-  if(els.volumePanel.classList.contains('hidden'))return;
-  els.volumePanel.classList.add('hidden');syncMusicButton();
+  if(els.startVolumePanel.classList.contains('hidden'))return;
+  els.startVolumePanel.classList.add('hidden');
+  els.startAudioBtn.setAttribute('aria-expanded','false');
 });
 els.themeMusic.addEventListener('loadedmetadata',()=>{
   const start=THEME_TRACK_START[document.documentElement.dataset.theme]||0;
@@ -380,6 +405,7 @@ function showPrompt(){
   els.text.textContent=it.text;
   const emojiValue=it.big||it.emoji||'';
   const emojiCount=it.big?1:countGraphemes(emojiValue);
+  els.btn.classList.toggle('denseContentPrompt',emojiCount>4&&promptLength>18);
   els.emoji.textContent=emojiValue;
   els.emoji.classList.toggle('manyEmoji',emojiCount>4);
   els.emoji.classList.toggle('denseEmoji',emojiCount>7);
@@ -508,7 +534,6 @@ function endGame(won,reason){
   els.machine.classList.add('hidden');els.hud.classList.add('hidden');
   els.rules.classList.add('hidden');els.catTag.classList.add('hidden');
   els.musicBtn.classList.add('hidden');
-  els.volumePanel.classList.add('hidden');
   els.exitBtn.classList.add('hidden');
   $('overTitle').textContent=won?'YOU WIN':'MACHINE WINS';
   $('modeBadge').textContent=(G.mode.key==='classic'?'RANDOM':G.mode.label)+' MODE';
@@ -574,7 +599,6 @@ function quitToMenu(){
   els.machine.classList.add('hidden');els.hud.classList.add('hidden');
   els.rules.classList.add('hidden');els.catTag.classList.add('hidden');els.exitBtn.classList.add('hidden');
   els.musicBtn.classList.add('hidden');
-  els.volumePanel.classList.add('hidden');
   els.quitDialog.classList.add('hidden');
   els.over.classList.add('hidden');
   els.start.classList.remove('hidden');
@@ -597,7 +621,7 @@ function startGame(modeKey){
   els.rules.classList.remove('hidden');els.exitBtn.classList.remove('hidden');
   playThemeMusic();syncMusicButton();
   els.catTag.classList.toggle('hidden', !mode.features.dynamicAccent);
-  els.btn.classList.remove('shortPrompt','longPrompt','veryLongPrompt','withPromptDetails','numericPrompt','holdPrompt','breakWords');
+  els.btn.classList.remove('shortPrompt','longPrompt','veryLongPrompt','withPromptDetails','numericPrompt','denseContentPrompt','holdPrompt','breakWords');
   els.btn.classList.add('readyPrompt');
   els.btn.style.setProperty('--prompt-scale','1');
   els.emoji.classList.remove('manyEmoji','denseEmoji');

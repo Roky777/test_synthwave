@@ -73,6 +73,7 @@ test('fits every prompt typography class inside the button face', async ({ page 
       {text:'PRESS IF THE NUMBER WAS 47',emoji:'🧠'},
       {text:'NEW RULE: ALWAYS PRESS WHEN YOU SEE A RAT',emoji:'🐀',sub:'REMEMBER THIS RULE'},
       {text:'PRESS WHEN STARS ARE EVEN',emoji:'⭐️⭐️⭐️⭐️'},
+      {text:'PRESS WHEN STARS ARE EVEN',emoji:'⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐'},
       {text:'PRESS EXACTLY 5 TIMES'},
       {text:'PRESS IF THIS IS INDIA',emoji:'🇮🇳'},
       {text:'HOLD THE BUTTON FOR 2 SECONDS',emoji:'✊',sub:'PRESS AND KEEP HOLDING'},
@@ -90,7 +91,11 @@ test('fits every prompt typography class inside the button face', async ({ page 
       btn.classList.toggle('veryLongPrompt',length>30);
       btn.classList.toggle('withPromptDetails',Boolean(item.emoji||item.big||item.sub));
       btn.classList.toggle('numericPrompt',Boolean(item.big));
+      const emojiCount=Array.from(item.big||item.emoji||'').length;
+      btn.classList.toggle('denseContentPrompt',emojiCount>4&&length>18);
       text.textContent=item.text;emoji.textContent=item.big||item.emoji||'';sub.textContent=item.sub||'';
+      emoji.classList.toggle('manyEmoji',emojiCount>4);
+      emoji.classList.toggle('denseEmoji',emojiCount>7);
       const stageEl=btn.querySelector('.promptStage');
       stageEl.style.setProperty('--prompt-half-height',`${text.getBoundingClientRect().height/2}px`);
       const stage=stageEl.getBoundingClientRect();
@@ -210,29 +215,56 @@ test('dims the scenery and keeps music below feedback volume during play', async
   )).toBeLessThan(.7);
 });
 
-test('opens a responsive music slider and applies its volume', async ({ page }) => {
+test('toggles game music directly from the speaker button', async ({ page }) => {
   await openApp(page);
   await page.click('.diffBtn[data-mode="classic"]');
   await page.click('#musicBtn');
-  await expect(page.locator('#volumePanel')).toBeVisible();
-  await expect(page.locator('#musicBtn')).toHaveAttribute('aria-expanded','true');
-  const placement=await page.evaluate(()=>{
-    const panel=document.querySelector('#volumePanel').getBoundingClientRect();
-    const button=document.querySelector('#musicBtn').getBoundingClientRect();
-    return {panelRight:panel.right,panelTop:panel.top,panelBottom:panel.bottom,panelHeight:panel.height,buttonLeft:button.left,buttonTop:button.top,buttonBottom:button.bottom};
-  });
-  expect(placement.panelRight).toBeLessThanOrEqual(placement.buttonLeft+1);
-  expect(placement.panelTop).toBeLessThan(placement.buttonBottom);
-  expect(placement.panelBottom).toBeGreaterThan(placement.buttonTop);
-  expect(placement.panelHeight).toBeLessThanOrEqual(46);
-  expect(Math.abs((placement.panelTop+placement.panelBottom)/2-(placement.buttonTop+placement.buttonBottom)/2)).toBeLessThanOrEqual(1);
-
-  await page.locator('#volumeSlider').fill('50');
-  await expect(page.locator('#volumeValue')).toHaveText('50%');
-  await expect.poll(()=>page.locator('#themeMusic').evaluate(el=>el.volume)).toBeCloseTo(.03);
-
-  await page.locator('#volumeSlider').fill('0');
   await expect(page.locator('#musicBtn')).toHaveClass(/muted/);
-  await page.evaluate(()=>document.dispatchEvent(new MouseEvent('click',{bubbles:true})));
-  await expect(page.locator('#volumePanel')).toHaveClass(/hidden/);
+  await expect(page.locator('#musicBtn')).toHaveAttribute('aria-label','Play music');
+  await expect.poll(()=>page.evaluate(()=>localStorage.getItem('wyp-music-muted'))).toBe('1');
+  await page.click('#musicBtn');
+  await expect(page.locator('#musicBtn')).not.toHaveClass(/muted/);
+  await expect(page.locator('#musicBtn')).toHaveAttribute('aria-label','Mute music');
+  await expect.poll(()=>page.evaluate(()=>localStorage.getItem('wyp-music-muted'))).toBe('0');
+});
+
+test('opens a well-aligned front-page slider and persists audio state', async ({ page }) => {
+  await openApp(page);
+  await expect(page.locator('#startAudioControl')).toBeVisible();
+  await expect(page.locator('#startVolumePanel')).toHaveClass(/hidden/);
+  await page.click('#startAudioBtn');
+  await expect(page.locator('#startVolumePanel')).toBeVisible();
+  await expect(page.locator('#startAudioBtn')).toHaveAttribute('aria-expanded','true');
+  const placement=await page.evaluate(()=>{
+    const panel=document.querySelector('#startVolumePanel').getBoundingClientRect();
+    const button=document.querySelector('#startAudioBtn').getBoundingClientRect();
+    const slider=document.querySelector('#startVolumeSlider').getBoundingClientRect();
+    const appStyle=getComputedStyle(document.querySelector('#app'));
+    return {panelLeft:panel.left,panelRight:panel.right,panelTop:panel.top,panelWidth:panel.width,panelHeight:panel.height,
+      buttonLeft:button.left,buttonRight:button.right,buttonBottom:button.bottom,sliderWidth:slider.width,sliderHeight:slider.height,
+      appBorderColor:appStyle.borderColor};
+  });
+  expect(placement.panelTop).toBeGreaterThanOrEqual(placement.buttonBottom+7);
+  expect(Math.abs((placement.panelLeft+placement.panelRight-placement.buttonLeft-placement.buttonRight)/2)).toBeLessThanOrEqual(1);
+  expect(placement.panelHeight).toBeGreaterThan(placement.panelWidth*2);
+  expect(placement.sliderHeight).toBeGreaterThan(placement.sliderWidth*3);
+  expect(placement.appBorderColor).toMatch(/rgba\([^)]*, 0\)|transparent/);
+  await page.locator('#startVolumeSlider').fill('42');
+  await expect(page.locator('#startVolumeValue')).toHaveText('42%');
+  await expect.poll(()=>page.evaluate(()=>localStorage.getItem('wyp-music-volume'))).toBe('0.42');
+
+  await page.click('#startMuteToggle');
+  await expect(page.locator('#startMuteToggle')).toHaveText('PLAY');
+  await expect(page.locator('#startAudioBtn')).toHaveClass(/muted/);
+  await expect.poll(()=>page.evaluate(()=>localStorage.getItem('wyp-music-muted'))).toBe('1');
+
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-app-ready','true');
+  await expect(page.locator('#startVolumeValue')).toHaveText('42%');
+  await expect(page.locator('#startAudioBtn')).toHaveClass(/muted/);
+
+  await page.click('.diffBtn[data-mode="classic"]');
+  await page.click('#musicBtn');
+  await expect(page.locator('#musicBtn')).not.toHaveClass(/muted/);
+  await expect.poll(()=>page.evaluate(()=>localStorage.getItem('wyp-music-muted'))).toBe('0');
 });
