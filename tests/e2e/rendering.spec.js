@@ -160,7 +160,7 @@ test('requests haptic feedback after a wrong answer', async ({ page }) => {
     document.querySelector('#btn').dispatchEvent(new PointerEvent('pointerdown',{pointerId:1,bubbles:true}));
     return true;
   })).toBe(true);
-  await expect.poll(()=>page.evaluate(()=>window.__vibratePattern)).toEqual([180,60,260,70,320]);
+  await expect.poll(()=>page.evaluate(()=>window.__vibratePattern)).toEqual([80,35,160]);
 });
 
 test('requests a lighter haptic pattern after a correct answer', async ({ page }) => {
@@ -178,7 +178,7 @@ test('requests a lighter haptic pattern after a correct answer', async ({ page }
     document.querySelector('#btn').dispatchEvent(new PointerEvent('pointerdown',{pointerId:1,bubbles:true}));
     return true;
   })).toBe(true);
-  await expect.poll(()=>page.evaluate(()=>window.__vibratePattern)).toEqual([28,20,48]);
+  await expect.poll(()=>page.evaluate(()=>window.__vibratePattern)).toEqual([25,18,45]);
 });
 
 test('keeps the dynamic category label directly below the HUD', async ({ page }) => {

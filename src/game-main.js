@@ -176,8 +176,10 @@ function vibrate(pattern){
   }catch{return false;}
 }
 const tapHaptic=()=>vibrate(16);
-const correctAnswerHaptic=()=>vibrate([28,20,48]);
-const wrongAnswerHaptic=()=>vibrate([180,60,260,70,320]);
+const correctAnswerHaptic=()=>vibrate([25,18,45]);
+const wrongAnswerHaptic=()=>vibrate([80,35,160]);
+const gameOverHaptic=()=>vibrate([120,50,180,60,260]);
+const holdCompleteHaptic=()=>vibrate([30,20,65]);
 function syncMusicButton(){
   const inGame=!els.hud.classList.contains('hidden');
   els.musicBtn.classList.toggle('hidden',!inGame);
@@ -408,7 +410,7 @@ function showPrompt(){
     if(G.holdStart&&!G.holdDone){
       const held=now-G.holdStart;
       els.holdFill.style.width=Math.min(100,held/20)+'%';
-      if(held>=2000){G.holdDone=true;vibrate([35,22,70]);succeed('ROCK-SOLID GRIP',false);return;}
+      if(held>=2000){G.holdDone=true;holdCompleteHaptic();succeed('ROCK-SOLID GRIP',false);return;}
     }
     const secLeft=Math.ceil(left*G.dur/1000);
     if(left<0.32&&secLeft!==G.lastTick){G.lastTick=secLeft;sTick();}
@@ -477,7 +479,9 @@ function fail(reason){
   els.btn.classList.remove('holding');els.scareEl.classList.remove('show');
   G.streak=0;G.lives--;els.streak.textContent='×0';
   setHearts(G.lives);
-  flash(false,reason);duckThemeMusic(1.1);distortThemeMusic();wrongAnswerHaptic();sBad();
+  flash(false,reason);duckThemeMusic(1.1);distortThemeMusic();
+  if(G.lives<=0)gameOverHaptic();else wrongAnswerHaptic();
+  sBad();
   els.app.classList.add('shake');setTimeout(()=>els.app.classList.remove('shake'),380);
   if(G.lives<=0){G.endTO=setTimeout(()=>{if(G.phase==='fb')endGame(false,reason);},750);}
   else next(1050);
