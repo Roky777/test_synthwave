@@ -402,7 +402,15 @@ function showPrompt(){
   els.btn.classList.toggle('veryLongPrompt',promptLength>30);
   els.btn.classList.toggle('withPromptDetails',Boolean(it.emoji||it.big||it.sub));
   els.btn.classList.toggle('numericPrompt',Boolean(it.big));
-  els.text.textContent=it.text;
+  els.btn.classList.toggle('countPrompt',it.type==='count');
+  if(it.type==='count'){
+    const match=it.text.match(/^PRESS WHEN (.+)$/);
+    const lead=document.createElement('span');
+    const condition=document.createElement('span');
+    lead.className='countLine';condition.className='countLine';
+    lead.textContent='PRESS WHEN';condition.textContent=match?match[1]:it.text;
+    els.text.replaceChildren(lead,condition);
+  }else els.text.textContent=it.text;
   const emojiValue=it.big||it.emoji||'';
   const emojiCount=it.big?1:countGraphemes(emojiValue);
   els.btn.classList.toggle('denseContentPrompt',emojiCount>4&&promptLength>18);
@@ -621,7 +629,7 @@ function startGame(modeKey){
   els.rules.classList.remove('hidden');els.exitBtn.classList.remove('hidden');
   playThemeMusic();syncMusicButton();
   els.catTag.classList.toggle('hidden', !mode.features.dynamicAccent);
-  els.btn.classList.remove('shortPrompt','longPrompt','veryLongPrompt','withPromptDetails','numericPrompt','denseContentPrompt','holdPrompt','breakWords');
+  els.btn.classList.remove('shortPrompt','longPrompt','veryLongPrompt','withPromptDetails','numericPrompt','denseContentPrompt','countPrompt','holdPrompt','breakWords');
   els.btn.classList.add('readyPrompt');
   els.btn.style.setProperty('--prompt-scale','1');
   els.emoji.classList.remove('manyEmoji','denseEmoji');

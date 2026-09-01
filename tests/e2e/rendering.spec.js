@@ -65,6 +65,13 @@ test('fits every prompt typography class inside the button face', async ({ page 
     const text=document.querySelector('#promptText');
     const emoji=document.querySelector('#promptEmoji');
     const sub=document.querySelector('#promptSub');
+    const countCases=[
+      ['🐱','CATS'],['🐶','DOGS'],['🐭','MICE'],['🐸','FROGS'],
+      ['🐵','MONKEYS'],['⭐','STARS'],['🍕','PIZZAS'],['⚽','BALLS'],
+      ['🦆','DUCKS'],['🍎','APPLES'],['🚗','CARS'],['🪔','DIYAS'],
+    ].flatMap(([symbol,name])=>[5,7,10].flatMap(count=>['EVEN','ODD'].map(parity=>({
+      text:`PRESS WHEN ${name} ARE ${parity}`,emoji:symbol.repeat(count),countPrompt:true,
+    }))));
     const cases=[
       {text:'PRESS'},
       {text:'DO NOT PRESS'},
@@ -82,6 +89,7 @@ test('fits every prompt typography class inside the button face', async ({ page 
       {text:'FREE 1000 POINTS IF YOU PRESS',emoji:'😏',sub:'(THIS IS A LIE)'},
       {text:'DOWNLOADING MORE GK… 99%',emoji:'📥',sub:'ALMOST THERE. HANDS OFF.'},
       {text:'REMEMBER THIS NUMBER',big:'47',sub:'JUST REMEMBER. DO NOT PRESS.'},
+      ...countCases,
     ];
     return cases.map(item=>{
       const length=item.text.length;
@@ -91,9 +99,18 @@ test('fits every prompt typography class inside the button face', async ({ page 
       btn.classList.toggle('veryLongPrompt',length>30);
       btn.classList.toggle('withPromptDetails',Boolean(item.emoji||item.big||item.sub));
       btn.classList.toggle('numericPrompt',Boolean(item.big));
+      btn.classList.toggle('countPrompt',Boolean(item.countPrompt));
       const emojiCount=Array.from(item.big||item.emoji||'').length;
       btn.classList.toggle('denseContentPrompt',emojiCount>4&&length>18);
-      text.textContent=item.text;emoji.textContent=item.big||item.emoji||'';sub.textContent=item.sub||'';
+      if(item.countPrompt){
+        const match=item.text.match(/^PRESS WHEN (.+)$/);
+        const lead=document.createElement('span');
+        const condition=document.createElement('span');
+        lead.className='countLine';condition.className='countLine';
+        lead.textContent='PRESS WHEN';condition.textContent=match?match[1]:item.text;
+        text.replaceChildren(lead,condition);
+      }else text.textContent=item.text;
+      emoji.textContent=item.big||item.emoji||'';sub.textContent=item.sub||'';
       emoji.classList.toggle('manyEmoji',emojiCount>4);
       emoji.classList.toggle('denseEmoji',emojiCount>7);
       const stageEl=btn.querySelector('.promptStage');
@@ -101,17 +118,26 @@ test('fits every prompt typography class inside the button face', async ({ page 
       const stage=stageEl.getBoundingClientRect();
       const textBox=text.getBoundingClientRect();
       const visible=[emoji,text,sub,document.querySelector('#holdBar')].filter(el=>getComputedStyle(el).display!=='none');
+      const countLineOverflow=item.countPrompt
+        ?Math.max(0,...Array.from(text.querySelectorAll('.countLine'),line=>line.scrollWidth-line.clientWidth))
+        :0;
       const overflow=visible.reduce((amount,el)=>{
         const box=el.getBoundingClientRect();
         return Math.max(amount,stage.top-box.top,box.bottom-stage.bottom,stage.left-box.left,box.right-stage.right);
-      },0);
-      return {text:item.text,overflow,font:parseFloat(getComputedStyle(text).fontSize),centerDelta:Math.abs((textBox.top+textBox.bottom-stage.top-stage.bottom)/2)};
+      },countLineOverflow);
+      const emojiBox=emoji.getBoundingClientRect();
+      return {text:item.text,overflow,font:parseFloat(getComputedStyle(text).fontSize),dense:btn.classList.contains('denseContentPrompt'),countPrompt:Boolean(item.countPrompt),
+        lines:Math.round(textBox.height/parseFloat(getComputedStyle(text).lineHeight)),
+        centerDelta:Math.abs((textBox.top+textBox.bottom-stage.top-stage.bottom)/2),
+        groupCenterDelta:Math.abs((emojiBox.top+textBox.bottom-stage.top-stage.bottom)/2)};
     });
   });
   for(const result of results){
     expect(result.overflow,result.text).toBeLessThanOrEqual(1);
     expect(result.font).toBeGreaterThanOrEqual(11);
-    expect(result.centerDelta).toBeLessThanOrEqual(2);
+    expect(result.centerDelta).toBeLessThanOrEqual(result.dense?12:2);
+    if(result.dense)expect(result.groupCenterDelta).toBeLessThanOrEqual(9);
+    if(result.countPrompt)expect(result.lines,result.text).toBeLessThanOrEqual(2);
   }
 });
 

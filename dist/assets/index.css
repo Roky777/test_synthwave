@@ -428,9 +428,17 @@
     font-size:calc(clamp(17px,calc(var(--size) * .074),29px) * var(--prompt-scale,1));letter-spacing:-.08em}
   #promptEmoji.denseEmoji{max-width:82%;
     font-size:calc(clamp(13px,calc(var(--size) * .056),22px) * var(--prompt-scale,1));letter-spacing:-.13em}
-  #btn.denseContentPrompt #promptText{font-size:calc(clamp(11px,calc(var(--size) * .058),21px) * var(--prompt-scale,1));
-    line-height:1.12;max-width:82%}
-  #btn.denseContentPrompt #promptEmoji{bottom:calc(50% + var(--prompt-half-height) + clamp(2px,calc(var(--size) * .009),4px))}
+  #btn.denseContentPrompt #promptText{top:calc(50% + clamp(7px,calc(var(--size) * .03),11px));
+    font-size:calc(clamp(11px,calc(var(--size) * .056),20px) * var(--prompt-scale,1));
+    line-height:1.12;max-width:92%;text-wrap:wrap}
+  #btn.denseContentPrompt #promptEmoji{
+    bottom:calc(50% + var(--prompt-half-height) + clamp(5px,calc(var(--size) * .018),7px) - clamp(7px,calc(var(--size) * .03),11px))
+  }
+  #btn.countPrompt #promptText{
+    font-size:calc(clamp(11px,calc(var(--size) * .052),18px) * var(--prompt-scale,1));
+    letter-spacing:.015em;white-space:normal
+  }
+  #btn.countPrompt .countLine{display:block;white-space:nowrap}
   /* display, not visibility — hidden still occupies its box and one flex gap. */
   #holdBar{width:60%;height:6px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden;
     display:none}
