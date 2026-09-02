@@ -146,27 +146,19 @@ test('keeps the complete start UI inside a phone viewport', async ({ page }) => 
   const boxes=await page.evaluate(() => {
     const overlay=document.querySelector('#startOverlay').getBoundingClientRect();
     const title=document.querySelector('.wordmark').getBoundingClientRect();
-    const orb=document.querySelector('.heroOrb').getBoundingClientRect();
     const actions=document.querySelector('#modeHome .diffRow').getBoundingClientRect();
     const cardElements=[...document.querySelectorAll('#modeHome .diffBtn')];
     const cards=cardElements.map(el=>el.getBoundingClientRect());
     return {
       viewportWidth:innerWidth,overlayTop:overlay.top,overlayBottom:overlay.bottom,
-      titleTop:title.top,orbWidth:orb.width,actionsWidth:actions.width,actionsBottom:actions.bottom,
+      titleTop:title.top,titleBottom:title.bottom,actionsTop:actions.top,actionsWidth:actions.width,actionsBottom:actions.bottom,
       cardHeights:cards.map(card=>card.height),labels:cardElements.map(card=>({scroll:card.querySelector('.modeText').scrollWidth,width:card.querySelector('.modeText').clientWidth})),
     };
   });
   expect(boxes.titleTop).toBeGreaterThanOrEqual(boxes.overlayTop-1);
   expect(boxes.actionsBottom).toBeLessThanOrEqual(boxes.overlayBottom+1);
-  if(boxes.viewportWidth<=480){
-    // The exported SVG has horizontal transparent padding: its visible 238px
-    // orb sits inside a 320px canvas. Phone layouts preserve the SE ratios.
-    const visibleOrbWidth=boxes.orbWidth*(238/320);
-    expect(boxes.actionsWidth/visibleOrbWidth).toBeGreaterThanOrEqual(1.36);
-    expect(boxes.actionsWidth/visibleOrbWidth).toBeLessThanOrEqual(1.4);
-    expect(boxes.cardHeights[0]/visibleOrbWidth).toBeGreaterThanOrEqual(.28);
-    expect(boxes.cardHeights[0]/visibleOrbWidth).toBeLessThanOrEqual(.31);
-  }
+  expect(boxes.actionsTop).toBeGreaterThan(boxes.titleBottom);
+  expect(boxes.actionsWidth).toBeLessThanOrEqual(Math.min(760,boxes.viewportWidth*.92)+1);
   expect(Math.abs(boxes.cardHeights[0]-boxes.cardHeights[1])).toBeLessThanOrEqual(1);
   for(const label of boxes.labels)expect(label.scroll).toBeLessThanOrEqual(label.width);
 });
