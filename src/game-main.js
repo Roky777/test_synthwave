@@ -270,7 +270,7 @@ const SEGS=30; let segEls=[];
 // GPUs those redundant mutations repeatedly invalidate the filtered ring and can flicker.
 let lastRingLit=-1,lastRingColor='';
 (function buildRing(){
-  // Countdown ring: ~30 chunky dashes clear of the orb's cyan bezel. Butt caps (not round) keep the
+  // Countdown ring: ~30 chunky dashes clear of the orb's static cyan bezel. Butt caps (not round) keep the
   // ticks squared off; round caps add RING_W/2 of length at each end, which is what made them read
   // as lozenges. gap is per-side in degrees -- at this radius it leaves each tick ~1.3:1.
   // RING_R/RING_W are in the 100-unit viewBox that spans --size.
@@ -296,10 +296,19 @@ function paintRing(frac){
   // Quantize the continuous time gradient to 60 visually smooth steps. This preserves the
   // ring's low-mutation mobile renderer while making color depend on time remaining only.
   const urgency=Math.round((1-frac)*60)/60;
-  const cyan=[67,232,255],magenta=[240,82,255],orange=[255,145,56];
-  const col=urgency<=.5
-    ?mixTimerColor(cyan,magenta,urgency*2)
-    :mixTimerColor(magenta,orange,(urgency-.5)*2);
+  // Timer color communicates time only. Interpolate through the warm synthwave ramp without
+  // borrowing cyan from the surrounding UI or changing treatment based on the instruction.
+  const stops=[
+    {at:0,color:[168,85,247]},   // purple — plenty of time
+    {at:.25,color:[217,70,239]}, // magenta
+    {at:.5,color:[244,63,158]},  // hot pink
+    {at:.7,color:[251,95,112]},  // coral
+    {at:.85,color:[255,138,43]}, // orange — urgent
+    {at:1,color:[255,138,43]},
+  ];
+  const upper=stops.findIndex(stop=>urgency<=stop.at);
+  const to=stops[Math.max(1,upper)],from=stops[Math.max(0,upper-1)];
+  const col=mixTimerColor(from.color,to.color,(urgency-from.at)/(to.at-from.at||1));
   if(lit===lastRingLit&&col===lastRingColor)return;
   lastRingLit=lit;lastRingColor=col;
   els.ring.style.setProperty('--timer-color',col);
