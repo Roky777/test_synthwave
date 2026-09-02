@@ -30,7 +30,7 @@
     --horizon-y:66%;
     /* Portrait menu content is world-anchored: the mode group follows the horizon while
        the wordmark remains tied to the top safe area. */
-    --mode-horizon-gap:clamp(56px,8dvh,96px);
+    --mode-horizon-gap:clamp(105px,9.5dvh,150px);
     /* Width-driven 1:1 synthwave sun. Its centre stays just above the shared horizon and the
        lower geometry is clipped there, so no viewport can expose the complete circle. */
     --sun-size:clamp(360px,120vw,680px);
@@ -711,6 +711,7 @@
 
   /* Tighten spacing on short viewports (small phones, landscape) so overlay content fits without scrolling */
   @media (max-height: 700px){
+    :root{--mode-horizon-gap:clamp(60px,9.5dvh,78px)}
     .overlay{gap:0;padding:16px}
     .overlay h1{font-size:clamp(22px,7vw,34px)}
     .tagline{font-size:12px;line-height:1.4}

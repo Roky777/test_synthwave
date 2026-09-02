@@ -47,10 +47,11 @@ test('all primary screens adapt across the viewport matrix',async({page})=>{
     expect(mode.horizon/height).toBeLessThanOrEqual(.68);
     if(width<=480&&height>width){
       const horizonGap=mode.horizon-mode.group.bottom;
+      const expectedGap=height<=620?[47,49]:height<=700?[59,79]:[104,151];
       expect(mode.titleSize,`${width}x${height} title remains prominent`).toBeGreaterThanOrEqual(36);
       expect(mode.group.top,`${width}x${height} title and mode group do not overlap`).toBeGreaterThanOrEqual(mode.title.bottom-1);
-      expect(horizonGap,`${width}x${height} mode group horizon gap minimum`).toBeGreaterThanOrEqual(47);
-      expect(horizonGap,`${width}x${height} mode group horizon gap maximum`).toBeLessThanOrEqual(97);
+      expect(horizonGap,`${width}x${height} mode group horizon gap minimum`).toBeGreaterThanOrEqual(expectedGap[0]);
+      expect(horizonGap,`${width}x${height} mode group horizon gap maximum`).toBeLessThanOrEqual(expectedGap[1]);
       expect(Math.min(...mode.cards.map(card=>card.height)),`${width}x${height} card touch height`).toBeGreaterThanOrEqual(68);
       expect(Math.min(...mode.cardTitleSizes),`${width}x${height} card title legibility`).toBeGreaterThanOrEqual(15);
       expect(Math.min(...mode.cardDescSizes),`${width}x${height} card description legibility`).toBeGreaterThanOrEqual(11);
