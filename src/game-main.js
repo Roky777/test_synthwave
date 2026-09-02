@@ -287,23 +287,34 @@ let lastRingLit=-1,lastRingColor='';
   }
 })();
 let curAccent='#FF3E9A';
+function mixTimerColor(from,to,amount){
+  const channel=index=>Math.round(from[index]+(to[index]-from[index])*amount);
+  return `rgb(${channel(0)}, ${channel(1)}, ${channel(2)})`;
+}
 function paintRing(frac){
   const lit=Math.ceil(frac*SEGS);
-  const col=frac>0.5?'#F052FF':frac>0.25?'#FF9A3E':'#FF4568';
+  // Quantize the continuous time gradient to 60 visually smooth steps. This preserves the
+  // ring's low-mutation mobile renderer while making color depend on time remaining only.
+  const urgency=Math.round((1-frac)*60)/60;
+  const cyan=[67,232,255],magenta=[240,82,255],orange=[255,145,56];
+  const col=urgency<=.5
+    ?mixTimerColor(cyan,magenta,urgency*2)
+    :mixTimerColor(magenta,orange,(urgency-.5)*2);
   if(lit===lastRingLit&&col===lastRingColor)return;
   lastRingLit=lit;lastRingColor=col;
+  els.ring.style.setProperty('--timer-color',col);
   segEls.forEach((p,i)=>{
     const active=i<lit;
     // Active tiles are colour-filled; spent tiles retain a dark, low-contrast silhouette.
     p.setAttribute('stroke',active?col:'rgba(15,4,22,.76)');
-    p.setAttribute('opacity',active?'.92':'.58');
+    p.setAttribute('opacity',active?'.96':'.42');
   });
 }
 function setAccent(hex,label){
   curAccent=hex;
   document.documentElement.style.setProperty('--accent',hex);
   document.documentElement.style.setProperty('--accent-soft',hex+'CC');
-  els.catTag.textContent='· '+label+' ·';
+  els.catTag.textContent='';
 }
 
 const RESULTS_KEY='wyp-results-v1';
@@ -628,7 +639,7 @@ function startGame(modeKey){
   els.machine.classList.remove('hidden');els.hud.classList.remove('hidden');
   els.rules.classList.remove('hidden');els.exitBtn.classList.remove('hidden');
   playThemeMusic();syncMusicButton();
-  els.catTag.classList.toggle('hidden', !mode.features.dynamicAccent);
+  els.catTag.classList.add('hidden');
   els.btn.classList.remove('shortPrompt','longPrompt','veryLongPrompt','withPromptDetails','numericPrompt','denseContentPrompt','countPrompt','holdPrompt','breakWords');
   els.btn.classList.add('readyPrompt');
   els.btn.style.setProperty('--prompt-scale','1');

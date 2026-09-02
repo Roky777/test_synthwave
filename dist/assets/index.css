@@ -8,8 +8,6 @@
     --amber:#FFA23E; --ok:#33D6A6; --bad:#FF4568;
     --ink:#FFF4F8; --dim:#CDA0C7;
     --size:min(76vw,52dvh,420px); /* machine diameter — 76vw puts the dash ring at ~73% of width, per the board */
-    --machine-offset:-2dvh;
-    --gameplay-shift:0px;
 
     /* ===== BACKGROUND DECOR CONFIG — every knob for position/size/z-index lives here ===== */
     /* Nebula theme: corner black hole */
@@ -17,13 +15,12 @@
     --blackhole-top:4%; --blackhole-right:-8%;
     --blackhole-z:0;
 
-    /* Synthwave theme: the machine, sun, skyline baseline and floor share one horizon */
-    --horizon-y:calc(50% + var(--machine-offset) + var(--gameplay-shift) + (var(--size) / 2));
-    --sun-size:calc(var(--size) * 2.18);  /* extends behind the full timer ring so no segment looks detached */
-    --sun-gap:0px;                        /* offset from --horizon; 0 = centered on it */
-    --sun-arc:100%;                       /* how much of the sun's height to draw, from the top down.
-                                              100% = full circle; e.g. 55% = a flat rising-sun dome, with
-                                              the excluded bottom portion not rendered at all (not just hidden) */
+    /* Synthwave theme: every screen shares one viewport-relative horizon. */
+    --horizon-y:66%;
+    /* Width-driven 1:1 synthwave sun. Its centre stays just above the shared horizon and the
+       lower geometry is clipped there, so no viewport can expose the complete circle. */
+    --sun-size:clamp(360px,120vw,680px);
+    --sun-horizon-offset:clamp(36px,10vw,72px);
     --sun-z:0;
     /* Full-width haze sitting on the horizon and fading upward. Deliberately NOT a circle centred
        on the button — that reads as a black ball. Raise --sun-tint-strength for a darker scene. */
@@ -71,7 +68,7 @@
   html,body{width:100%;min-width:100%;height:100%;overflow:hidden;overscroll-behavior:none}
   body{
     background:var(--space-1);
-    font-family:'Quantico',system-ui,sans-serif;color:var(--ink);
+    font-family:'Quantico';color:var(--ink);
     display:block;
     touch-action:manipulation;
   }
@@ -155,18 +152,18 @@
   /* SYNTHWAVE theme is the alternative background pick; only one theme's decor renders at a time */
   html[data-theme="synthwave"] #blackhole{display:none}
 
-  /* Retro sun: warm gradient circle sliced into horizontal scanlines via a mask.
-     Centered on the horizon line (same anchor as the skyline/grid) and sized to sit fully behind the button. */
-  #sun{position:fixed;left:50%;top:calc(var(--horizon-y) + var(--sun-gap));transform:translate(-50%,-50%);
-    width:var(--sun-size);aspect-ratio:1;border-radius:50%;z-index:var(--sun-z);pointer-events:none;
-    opacity:0;transition:opacity .6s;
-    clip-path:inset(0 0 calc(100% - var(--sun-arc)) 0);
+  /* Circular striped landmark, cropped at the horizon before the skyline and road are painted.
+     Scaling comes from width only; height and aspect ratio never influence its diameter. */
+  #sun{position:fixed;left:50%;top:calc(var(--horizon-y) - var(--sun-horizon-offset));
+    transform:translate(-50%,-50%);width:var(--sun-size);aspect-ratio:1;border-radius:50%;
+    z-index:var(--sun-z);pointer-events:none;overflow:hidden;opacity:0;transition:opacity .6s;
+    clip-path:inset(0 0 calc(50% - var(--sun-horizon-offset)) 0);
     background:
-      repeating-linear-gradient(to bottom,transparent 0 9px,rgba(35,4,35,.2) 9px 12px),
-      radial-gradient(circle at 50% 58%,#FF9E86 0%,#FF7B62 16%,var(--sun) 34%,#FF3E9A 62%,#C2278A 84%,#7A1B63 100%);
-    -webkit-mask-image:radial-gradient(circle,#000 0 81%,rgba(0,0,0,.88) 87%,rgba(0,0,0,.42) 94%,transparent 100%);
-    mask-image:radial-gradient(circle,#000 0 81%,rgba(0,0,0,.88) 87%,rgba(0,0,0,.42) 94%,transparent 100%);
-    filter:drop-shadow(0 0 34px color-mix(in srgb,var(--sun) 28%,transparent))}
+      repeating-linear-gradient(to bottom,transparent 0 8px,rgba(24,3,29,.34) 8px 12px),
+      linear-gradient(to bottom,#642052 0%,#942663 48%,#C6387B 78%,#D04A72 100%);
+    -webkit-mask-image:radial-gradient(circle,#000 0 84%,rgba(0,0,0,.9) 90%,rgba(0,0,0,.42) 96%,transparent 100%);
+    mask-image:radial-gradient(circle,#000 0 84%,rgba(0,0,0,.9) 90%,rgba(0,0,0,.42) 96%,transparent 100%);
+    filter:drop-shadow(0 0 18px rgba(198,56,123,.18))}
   /* Even haze across the whole scene just above the horizon: takes the glare off the sun so the
      button reads against it, without any shape of its own. Bottom edge pins to the horizon (same
      trick as #skyline) so it never touches the floor. */
@@ -255,8 +252,8 @@
   html[data-theme="synthwave"] #skyline{opacity:.72}
   html[data-theme="synthwave"] #bgFx{background:linear-gradient(180deg,var(--space-1) 0%,var(--space-2) 100%)}
   /* During a run, quiet the scenery so the interactive orb is always the visual focal point. */
-  body.game-active{--scene-scrim:.58;--sun-tint-strength:.68;--gameplay-shift:18px}
-  html[data-theme="synthwave"] body.game-active #sun{opacity:.42}
+  body.game-active{--scene-scrim:.58;--sun-tint-strength:.68}
+  html[data-theme="synthwave"] body.game-active #sun{opacity:.48}
   html[data-theme="synthwave"] body.game-active #skyline{opacity:.27}
   html[data-theme="synthwave"] body.game-active #grid{opacity:.56}
 
@@ -287,7 +284,7 @@
                inset 0 0 10px color-mix(in srgb, var(--hue) 10%, transparent);
     transition:border-color .8s}
   .hudLabel{font-size:11px;letter-spacing:.16em;color:var(--hue);font-weight:700;font-style:italic}
-  .hudVal{font-family:'Quantico',ui-monospace,monospace;font-variant-numeric:tabular-nums;
+  .hudVal{font-family:'Quantico';font-variant-numeric:tabular-nums;
     font-size:21px;font-weight:700;line-height:1.15;color:var(--hue);
     text-shadow:0 0 8px color-mix(in srgb, var(--hue) 45%, transparent)}
   #streakBox{--hue:var(--amber)}
@@ -317,12 +314,14 @@
   #musicBtn.muted,#startAudioBtn.muted{opacity:.58}
   #musicBtn.muted::after,#startAudioBtn.muted::after{content:"";position:absolute;width:22px;height:2px;border-radius:2px;background:currentColor;transform:rotate(-45deg)}
   .audioToggle{position:relative;border:0;border-radius:7px;padding:2px 7px;background:rgba(255,63,209,.16);
-    color:var(--orb-ring);font:700 9px/1.4 'Quantico',ui-monospace,monospace;letter-spacing:.08em;cursor:pointer}
-  #startAudioControl{position:absolute;z-index:8;top:max(12px,env(safe-area-inset-top));
+    color:var(--orb-ring);font:700 9px/1.4 'Quantico';letter-spacing:.08em;cursor:pointer}
+  #startAudioControl{position:absolute;z-index:8;top:max(10px,env(safe-area-inset-top));
     right:max(12px,env(safe-area-inset-right));width:44px;height:44px}
   #startAudioBtn{width:44px;height:44px;padding:0;border:2px solid var(--orb-bezel);border-radius:50%;
-    display:grid;place-items:center;background:rgba(8,3,18,.88);color:#E9FCFF;
-    box-shadow:0 0 16px rgba(61,231,255,.42),inset 0 0 14px rgba(61,231,255,.08);cursor:pointer}
+    display:grid;place-items:center;background:linear-gradient(145deg,rgba(10,4,22,.94),rgba(45,8,55,.9));color:#E9FCFF;
+    border-width:1px;border-color:color-mix(in srgb,var(--grid) 78%,transparent);
+    box-shadow:0 0 6px color-mix(in srgb,var(--grid) 42%,transparent),
+      inset 0 0 8px color-mix(in srgb,var(--accent) 18%,transparent);cursor:pointer}
   #startAudioBtn svg{width:20px;height:20px}
   #startVolumePanel{position:absolute;right:0;top:52px;width:44px;height:148px;padding:7px 4px;
     border:1.5px solid rgba(61,231,255,.82);border-radius:11px;background:rgba(8,3,18,.9);
@@ -331,11 +330,12 @@
   #startMuteToggle{width:36px;padding:3px 2px}
   #startVolumeSlider{display:block;width:18px;height:82px;margin:0;accent-color:var(--orb-ring);
     cursor:pointer;touch-action:pan-y;writing-mode:vertical-lr;direction:rtl}
-  #startVolumeValue{color:var(--orb-bezel);font:700 9px/1 'Quantico',ui-monospace,monospace;text-align:center}
+  #startVolumeValue{color:var(--orb-bezel);font:700 9px/1 'Quantico';text-align:center}
 
   /* MACHINE */
   #machine{position:relative;width:var(--size);height:var(--size);display:flex;
-    top:calc(var(--machine-offset) + var(--gameplay-shift));align-items:center;justify-content:center;z-index:2;flex-shrink:0;
+    /* The machine's lower edge meets the shared 66% horizon without driving its position. */
+    top:calc(var(--horizon-y) - 50% - (var(--size) / 2));align-items:center;justify-content:center;z-index:2;flex-shrink:0;
     background:radial-gradient(ellipse 48% 46% at 50% 50%,rgba(2,0,6,.82) 0 57%,rgba(3,0,8,.56) 70%,rgba(3,0,8,.18) 83%,transparent 100%);
     transition:transform .28s cubic-bezier(.34,1.56,.64,1)}
   #machine.tiny{transform:scale(.52)}
@@ -356,9 +356,9 @@
     border:2px solid var(--orb-ring);
     box-shadow:0 0 12px color-mix(in srgb, var(--orb-ring) 70%, transparent),
                inset 0 0 12px color-mix(in srgb, var(--orb-ring) 45%, transparent)}
-  /* Countdown segments, drawn in the export's outer cyan band */
+  /* Countdown color communicates urgency only and follows the same timeline for every prompt. */
   #ringSvg{position:absolute;inset:0;transform:rotate(-90deg);pointer-events:none;z-index:2;
-    filter:drop-shadow(0 0 4px color-mix(in srgb, var(--accent) 42%, transparent))}
+    filter:drop-shadow(0 0 3px color-mix(in srgb,var(--timer-color,#F052FF) 34%,transparent))}
   #btn{
     position:relative;z-index:4;width:var(--orb-face-d);height:var(--orb-face-d);
     min-width:0;min-height:0;flex:none;aspect-ratio:1;
@@ -412,7 +412,7 @@
     font-size:calc(clamp(28px,calc(var(--size) * .15),52px) * var(--prompt-scale,1));
     filter:drop-shadow(0 3px 8px rgba(0,0,0,.72)) drop-shadow(0 0 10px rgba(255,255,255,.2))
   }
-  #promptSub{max-width:82%;font-family:'Quantico',ui-monospace,monospace;
+  #promptSub{max-width:82%;font-family:'Rajdhani';
     font-size:calc(clamp(8px,calc(var(--size) * .026),11px) * var(--prompt-scale,1));color:#F3A8DC;
     letter-spacing:.1em;line-height:1.3;font-weight:700;text-align:center;text-wrap:balance;
     text-shadow:0 1px 3px #000,0 0 8px rgba(243,168,220,.28);transition:color .8s}
@@ -536,7 +536,8 @@
     color:transparent;-webkit-text-fill-color:transparent;
     filter:drop-shadow(0 0 18px color-mix(in srgb, var(--orb-ring) 50%, transparent))}
   .tagline{color:#F0DCF5;font-size:clamp(9px,2.9vw,15px);letter-spacing:.08em;line-height:1.5;
-    white-space:nowrap;text-shadow:0 2px 4px #000,0 0 12px rgba(0,0,0,.9),0 0 18px rgba(242,59,255,.22)}
+    font-family:'Rajdhani';font-weight:600;white-space:nowrap;
+    text-shadow:0 2px 4px #000,0 0 12px rgba(0,0,0,.9),0 0 18px rgba(242,59,255,.22)}
   /* Gaps read off the design board rather than one uniform rhythm. */
   .tagline{margin-top:1dvh}
   .modeView{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;margin-top:3.1dvh}
@@ -551,44 +552,45 @@
     box-shadow:0 0 14px color-mix(in srgb, var(--orb-ring) 34%, transparent),
                inset 0 0 16px color-mix(in srgb, var(--orb-ring) 10%, transparent)}
   .diffBtn small{display:block;font-weight:400;font-size:11.5px;color:var(--dim);letter-spacing:.02em;
-    margin-top:3px;text-shadow:0 1px 3px #000,0 0 8px rgba(0,0,0,.8)}
+    font-family:'Rajdhani';margin-top:3px;text-shadow:0 1px 3px #000,0 0 8px rgba(0,0,0,.8)}
   .diffBtn:hover{border-color:var(--orb-rim);box-shadow:0 0 20px color-mix(in srgb, var(--orb-ring) 50%, transparent)}
   .diffBtn:active{transform:scale(.97)}
   .diffBtn,.bigBtn{touch-action:manipulation}
 
   /* Landing-page composition scales as one viewport-bound grid. Height-based sizing keeps the
      complete page visible on phones, tablets and short laptops without one-off fixed offsets. */
-  #startOverlay:has(#modeHome:not(.hidden)){display:grid;grid-template-columns:1fr;
-    grid-template-rows:auto auto auto;justify-items:center;align-content:center;
-    row-gap:clamp(10px,2dvh,20px);padding:clamp(18px,4dvh,40px) 16px}
-  body:has(#startOverlay:not(.hidden) #modeHome:not(.hidden)){
-    --horizon-y:38%;
-    /* Oversize the menu sun so its circular edge is clipped beyond the viewport,
-       preventing dark triangular corners at the top of tall screens. */
-    --sun-size:max(140vw,110vh)
-  }
+  #startOverlay:has(#modeHome:not(.hidden)){display:flex;justify-content:flex-start;
+    padding:clamp(34px,5dvh,58px) 16px max(42px,env(safe-area-inset-bottom));overflow-y:auto}
+  /* The landing page intentionally inherits the gameplay horizon, sun, skyline and grid
+     measurements. Only its foreground controls change, so both screens remain one scene. */
   #startOverlay:has(#modeHome:not(.hidden))>.wordmark{
-    font-size:clamp(28px,min(9vw,5.5dvh),52px);line-height:.92;letter-spacing:.025em;
-    transform:translateY(-5dvh)}
+    flex:none;font-size:clamp(36px,min(11.2vw,5.9dvh),58px);line-height:.86;letter-spacing:.025em}
   #startOverlay:has(#modeHome:not(.hidden))>.tagline{
-    width:min(470px,82vw);margin:0;white-space:normal;line-height:1.4;
-    transform:translateY(-5dvh)}
-  #modeHome{width:min(680px,90vw);margin:clamp(34px,6dvh,68px) 0 0;padding:0;gap:0}
-  #modeHome .diffRow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;gap:clamp(12px,2vw,18px)}
-  #modeHome .diffBtn{position:relative;height:clamp(82px,11dvh,104px);min-height:0;
-    padding:13px 16px;border-width:2px;border-radius:16px;overflow:hidden;background:rgba(8,2,16,.88)}
+    flex:none;width:min(520px,88vw);margin:clamp(12px,1.8dvh,17px) 0 0;white-space:normal;line-height:1.4}
+  #modeHome{flex:none;width:min(580px,92vw);margin:clamp(25px,3.8dvh,40px) 0 0;padding:0;gap:clamp(12px,1.6dvh,16px)}
+  .modeSelectTitle{width:100%;display:flex;align-items:center;gap:14px;color:#FFEAF9;
+    font-size:clamp(11px,2.8vw,14px);font-weight:700;letter-spacing:.2em;white-space:nowrap;
+    text-shadow:0 0 10px rgba(255,75,165,.55)}
+  .modeSelectTitle::before,.modeSelectTitle::after{content:"";height:1px;flex:1;background:linear-gradient(90deg,transparent,rgba(255,75,165,.72))}
+  .modeSelectTitle::after{transform:scaleX(-1)}
+  #modeHome .diffRow{display:flex;flex-direction:column;width:100%;gap:clamp(8px,1.2dvh,12px)}
+  #modeHome .diffBtn{position:relative;width:100%;height:clamp(70px,9.5dvh,78px);min-height:70px;
+    padding:9px 15px;border-width:1.5px;border-radius:16px;overflow:hidden;background:rgba(8,2,16,.9)}
   #modeHome .diffBtn::before{content:"";position:absolute;inset:0;pointer-events:none;
     background:linear-gradient(120deg,rgba(255,255,255,.08),transparent 38%)}
   #modeHome .diffBtn[data-mode="classic"]{border-color:#49E9FF;
-    box-shadow:0 0 16px rgba(73,233,255,.2),inset 0 0 20px rgba(73,233,255,.05)}
+    box-shadow:0 0 11px rgba(73,233,255,.14),inset 0 0 16px rgba(73,233,255,.045)}
   #modeHome #gradeSelectBtn{border-color:#F45CDA;
     box-shadow:0 0 16px rgba(244,92,218,.2),inset 0 0 20px rgba(244,92,218,.05)}
-  #modeHome .modeIcon{width:clamp(40px,5.4dvh,48px);height:clamp(40px,5.4dvh,48px)}
-  #modeHome .modeText{font-size:clamp(16px,4.4vw,21px)}
+  #modeHome .modeIcon{width:clamp(40px,5.2dvh,47px);height:clamp(40px,5.2dvh,47px)}
+  #modeHome .modeText{font-size:clamp(16px,4.4vw,20px);text-align:left}
+  #modeHome .modeText strong{display:block;font:inherit}
   #modeHome .diffBtn small{margin-top:clamp(3px,.7dvh,7px);font-size:clamp(11px,2.7vw,13px);
     font-weight:700;color:#F0DDEE;text-shadow:0 1px 4px #000}
   #modeHome .chev{width:28px;height:28px;display:grid;place-items:center;border-radius:50%;
-    background:color-mix(in srgb,var(--orb-ring) 15%,transparent)}
+    border:1px solid currentColor;background:color-mix(in srgb,var(--orb-ring) 12%,transparent)}
+  #modeHome .chev svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  #modeHome .diffBtn[data-mode="classic"] .chev{color:#49E9FF;background:rgba(73,233,255,.1)}
 
   /* Grade selection becomes its own focused page, matching the supplied flow while retaining
      the existing synthwave scene and palette. */
@@ -596,26 +598,27 @@
   #startOverlay:has(#gradeView:not(.hidden))>.wordmark,
   #startOverlay:has(#gradeView:not(.hidden))>.tagline,
   #startOverlay:has(#gradeView:not(.hidden))>.themeRow{display:none}
-  #gradeView{width:min(100%,520px);margin:0;gap:clamp(28px,5dvh,48px)}
+  #gradeView{width:min(100%,520px);margin:0;gap:clamp(32px,5dvh,38px)}
   #gradeView .modeViewTitle{display:none}
   #gradeView .gradeHeading{display:block}
   .gradeHeading h2{font-size:clamp(27px,7.5vw,42px);font-style:italic;line-height:1.08;
     letter-spacing:.04em;color:#FF4BD4;text-shadow:0 2px 3px #000,0 0 18px rgba(255,63,209,.72)}
-  .gradeHeading p{margin-top:14px;font-size:clamp(10px,2.7vw,13px);letter-spacing:.15em;
-    color:#F2DDF5;text-shadow:0 2px 4px #000,0 0 10px #000}
-  #gradeView .diffRow{width:min(400px,82vw);gap:14px}
-  #gradeView .diffBtn{min-height:70px;border-width:1.5px;border-radius:16px;padding:9px 14px;background:rgba(12,4,20,.9)}
-  #gradeView .modeIcon{width:44px;height:44px;border-radius:11px;background:transparent;
-    object-fit:contain;filter:drop-shadow(0 0 8px currentColor)}
-  #gradeView .modeText{font-size:clamp(18px,5vw,23px);text-shadow:0 2px 3px #000,0 0 9px currentColor}
+  #gradeView .diffRow{width:min(400px,82vw);gap:10px}
+  #gradeView .diffBtn{width:100%;height:65px;min-height:65px;border-width:1.5px;border-radius:16px;
+    padding:8px 14px;gap:13px;background:rgba(12,4,20,.9)}
+  #gradeView .modeIcon{width:42px;height:42px;border-radius:11px;background:transparent;
+    object-fit:contain;filter:drop-shadow(0 0 6px currentColor)}
+  #gradeView .modeText{font-size:clamp(18px,5vw,23px);text-shadow:0 2px 3px #000}
   #gradeView .diffBtn small{margin-top:5px;font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:#E6CDEB}
-  #gradeView .diffBtn[data-mode="explorer"]{border-color:#3EEBFF;box-shadow:0 0 14px rgba(62,235,255,.2),inset 0 0 16px rgba(62,235,255,.06)}
+  #gradeView .chev{width:26px;height:26px;display:grid;place-items:center;border:1px solid currentColor;
+    border-radius:50%;background:color-mix(in srgb,currentColor 10%,transparent);font-size:21px;text-shadow:none}
+  #gradeView .diffBtn[data-mode="explorer"]{border-color:#3EEBFF;box-shadow:0 0 11px rgba(62,235,255,.16),inset 0 0 14px rgba(62,235,255,.05)}
   #gradeView .diffBtn[data-mode="explorer"] .modeIcon,
   #gradeView .diffBtn[data-mode="explorer"] .chev{color:#3EEBFF}
-  #gradeView .diffBtn[data-mode="challenger"]{border-color:#F23BFF;box-shadow:0 0 14px rgba(242,59,255,.2),inset 0 0 16px rgba(242,59,255,.06)}
+  #gradeView .diffBtn[data-mode="challenger"]{border-color:#F23BFF;box-shadow:0 0 11px rgba(242,59,255,.16),inset 0 0 14px rgba(242,59,255,.05)}
   #gradeView .diffBtn[data-mode="challenger"] .modeIcon,
   #gradeView .diffBtn[data-mode="challenger"] .chev{color:#F23BFF}
-  #gradeView .diffBtn[data-mode="mastermind"]{border-color:#FF9138;box-shadow:0 0 14px rgba(255,145,56,.2),inset 0 0 16px rgba(255,145,56,.06)}
+  #gradeView .diffBtn[data-mode="mastermind"]{border-color:#FF9138;box-shadow:0 0 11px rgba(255,145,56,.16),inset 0 0 14px rgba(255,145,56,.05)}
   #gradeView .diffBtn[data-mode="mastermind"] .modeIcon,
   #gradeView .diffBtn[data-mode="mastermind"] .chev{color:#FF9138}
   .themeRow{display:flex;gap:12px;width:min(420px,84vw)}
@@ -711,7 +714,6 @@
       /* One reference pixel from the 375x667 iPhone SE composition. Scale the
          complete composition uniformly by its tightest viewport dimension. */
       --landing-u:min(.266667vw,.149925dvh);
-      --machine-offset:-5dvh;
       --skyline-height:clamp(60px,11vh,90px);
       --grid-cell:68px;
     }
@@ -737,27 +739,22 @@
     .diffBtn small{font-size:10px}
     .diffBtn .em{font-size:22px}
     .themeBtn{min-height:48px}
-    /* Centre one uniformly scaled composition; individual assets never drift apart. */
+    /* Portrait mode selection: strong title, clear heading, two full-width game cards. */
     #startOverlay:has(#modeHome:not(.hidden)){
-      align-content:center;row-gap:calc(10 * var(--landing-u));
-      padding:max(56px,env(safe-area-inset-top)) 14px max(24px,env(safe-area-inset-bottom))
+      padding:max(32px,calc(env(safe-area-inset-top) + 22px)) 14px max(34px,env(safe-area-inset-bottom))
     }
     #startOverlay:has(#modeHome:not(.hidden))>.wordmark{
-      font-size:calc(35 * var(--landing-u));line-height:.9
+      font-size:clamp(36px,11.6vw,48px);line-height:.86
     }
-    #startOverlay:has(#modeHome:not(.hidden))>.tagline{font-size:calc(10 * var(--landing-u));line-height:1.25}
-    #modeHome{width:min(340px,92vw);margin-top:clamp(34px,6dvh,48px);padding:0;gap:0}
-    #modeHome .diffRow{display:flex;width:100%}
-    #modeHome .diffRow{width:calc(315 * var(--landing-u));gap:calc(10 * var(--landing-u))}
+    #modeHome{width:min(360px,92vw);margin-top:clamp(28px,4.7dvh,36px);gap:12px}
+    #modeHome .diffRow{display:flex;width:100%;gap:10px}
     #modeHome .diffBtn{
-      height:calc(62 * var(--landing-u));padding:calc(7 * var(--landing-u)) calc(13 * var(--landing-u));
-      gap:calc(11 * var(--landing-u));border-radius:calc(14 * var(--landing-u))
+      min-height:64px;height:68px;padding:8px 11px;gap:9px;border-radius:15px
     }
-    #modeHome .modeIcon{width:calc(44 * var(--landing-u));height:calc(44 * var(--landing-u))}
-    #modeHome .modeText{font-size:calc(15 * var(--landing-u));letter-spacing:.01em;white-space:nowrap}
-    #modeHome .diffBtn small{font-size:max(10px,calc(9 * var(--landing-u)));margin-top:calc(3 * var(--landing-u))}
-    #modeHome .chev{width:calc(25 * var(--landing-u));height:calc(25 * var(--landing-u));font-size:calc(20 * var(--landing-u))}
-    #modeHome .modeText small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    #modeHome .modeIcon{width:38px;height:38px}
+    #modeHome .modeText{font-size:clamp(13px,3.8vw,15px);letter-spacing:.01em;white-space:normal}
+    #modeHome .diffBtn small{font-size:clamp(8.5px,2.4vw,10px);margin-top:3px;white-space:normal}
+    #modeHome .chev{width:25px;height:25px}
   }
   @media (max-width: 360px){
     :root{--size:min(72vw,45dvh,320px)}
@@ -768,7 +765,6 @@
   @media (orientation: landscape) and (max-height: 560px){
     :root{
       --size:min(48dvh,44vw,300px);
-      --machine-offset:0px;
       --skyline-height:clamp(48px,15vh,76px);
       --grid-cell:64px;
     }
@@ -781,6 +777,37 @@
     .diffBtn .em{font-size:18px}
     .themeRow{width:min(280px,55vw)}
     #rules{justify-content:flex-end;padding-right:max(10px,env(safe-area-inset-right));left:55%}
+    #startOverlay:has(#modeHome:not(.hidden)){padding:16px max(58px,env(safe-area-inset-right)) 12px max(58px,env(safe-area-inset-left))}
+    #startOverlay:has(#modeHome:not(.hidden))>.wordmark{font-size:clamp(27px,8.5vh,36px);line-height:.84}
+    #modeHome{width:min(620px,88vw);margin-top:clamp(8px,2.5vh,14px);gap:6px}
+    #modeHome .modeSelectTitle{font-size:10px}
+    #modeHome .diffRow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;gap:10px}
+    #modeHome .diffBtn{height:clamp(54px,15vh,66px);min-height:54px;padding:6px 10px}
+    #modeHome .modeIcon{width:34px;height:34px}
+    #modeHome .modeText{font-size:clamp(12px,2.2vw,15px)}
+    #modeHome .diffBtn small{font-size:9px;margin-top:2px}
+    #startOverlay:has(#gradeView:not(.hidden)){padding:52px max(58px,env(safe-area-inset-right)) 12px max(58px,env(safe-area-inset-left))}
+    #gradeView{width:min(760px,92vw);gap:12px}
+    .gradeHeading h2{font-size:clamp(24px,7vh,32px);line-height:.94}
+    #gradeView .diffRow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;gap:10px}
+    #gradeView .diffBtn{height:clamp(52px,15vh,62px);min-height:52px;padding:5px 10px;gap:8px}
+    #gradeView .modeIcon{width:36px;height:36px}
+    #gradeView .modeText{font-size:clamp(14px,2.4vw,18px)}
+    #gradeView .diffBtn small{font-size:9px;margin-top:2px}
+  }
+
+  /* Height-constrained portrait devices compress optional spacing before touch targets or type. */
+  @media (orientation:portrait) and (max-height:620px){
+    #startOverlay:has(#modeHome:not(.hidden)){padding-top:max(24px,calc(env(safe-area-inset-top) + 16px))}
+    #startOverlay:has(#modeHome:not(.hidden))>.wordmark{font-size:clamp(32px,10.8vw,40px)}
+    #modeHome{margin-top:clamp(18px,3.2dvh,24px);gap:8px}
+    #modeHome .diffBtn{height:62px;min-height:62px}
+    #startOverlay:has(#gradeView:not(.hidden)){padding-top:max(58px,calc(env(safe-area-inset-top) + 50px))}
+    #gradeView{gap:18px}
+    .gradeHeading h2{font-size:clamp(25px,7.5vw,30px)}
+    #gradeView .diffRow{gap:7px}
+    #gradeView .diffBtn{height:58px;min-height:58px}
+    #gradeView .modeIcon{width:38px;height:38px}
   }
 
   /* SYNTHWAVE neon-frame UI: glowing tube borders on the HUD + an arcade-bezel frame around the screen */
@@ -803,23 +830,42 @@
   html[data-theme="synthwave"] #exitBtn,
   html[data-theme="synthwave"] #musicBtn,
   html[data-theme="synthwave"] #gradeBackBtn{
-    color:#E9FCFF;border:1.5px solid var(--grid);
+    color:#E9FCFF;border:1px solid color-mix(in srgb,var(--grid) 78%,transparent);
     background:linear-gradient(145deg,rgba(10,4,22,.94),rgba(45,8,55,.9));
-    box-shadow:0 0 8px color-mix(in srgb,var(--grid) 72%,transparent),
-      inset 0 0 10px color-mix(in srgb,var(--accent) 34%,transparent);
-    text-shadow:0 0 7px var(--grid);
+    box-shadow:0 0 6px color-mix(in srgb,var(--grid) 42%,transparent),
+      inset 0 0 8px color-mix(in srgb,var(--accent) 18%,transparent);
+    text-shadow:0 0 5px color-mix(in srgb,var(--grid) 62%,transparent);
   }
   html[data-theme="synthwave"] #hud .hudBox:nth-child(1){color:var(--accent);border-color:var(--accent)}
   html[data-theme="synthwave"] #hud .hudBox:nth-child(2){color:var(--amber);border-color:var(--amber)}
   html[data-theme="synthwave"] #hud .hudBox:nth-child(3){color:var(--grid);border-color:var(--grid)}
   html[data-theme="synthwave"] .hudBox .hudLabel,
   html[data-theme="synthwave"] .hudBox .hudVal{color:inherit}
+  /* Gameplay neon stays crisp: thin edges plus a restrained halo. These rules are deliberately
+     independent of the current prompt, so PRESS and DO NOT PRESS are visually indistinguishable. */
+  html[data-theme="synthwave"] body.game-active #machine::before{
+    border-width:1.25px;
+    box-shadow:0 0 0 3px rgba(6,1,11,.42),0 8px 30px 6px rgba(4,0,9,.55),
+      0 0 7px color-mix(in srgb,var(--orb-bezel) 26%,transparent),
+      inset 0 0 5px color-mix(in srgb,var(--orb-bezel) 11%,transparent)}
+  html[data-theme="synthwave"] body.game-active #ringSvg{
+    filter:drop-shadow(0 0 2px color-mix(in srgb,var(--timer-color,#F052FF) 26%,transparent))}
+  html[data-theme="synthwave"] body.game-active #btn{
+    box-shadow:inset 0 0 0 1px var(--orb-rim),inset 0 -14px 34px rgba(0,0,0,.6),
+      0 18px 42px rgba(0,0,0,.9),0 0 24px color-mix(in srgb,var(--orb-ring) 24%,transparent)}
+  html[data-theme="synthwave"] body.game-active .hudBox{
+    box-shadow:0 0 5px color-mix(in srgb,currentColor 45%,transparent),
+      inset 0 0 4px color-mix(in srgb,currentColor 18%,transparent)}
+  html[data-theme="synthwave"] body.game-active #exitBtn,
+  html[data-theme="synthwave"] body.game-active #musicBtn{
+    box-shadow:0 0 3px color-mix(in srgb,var(--grid) 25%,transparent),
+      inset 0 0 5px color-mix(in srgb,var(--accent) 12%,transparent);
+    text-shadow:0 0 3px color-mix(in srgb,var(--grid) 38%,transparent)}
 
   /* Tablets: use the available canvas without letting the machine consume the floor or HUD. */
   @media (min-width:481px) and (max-width:1024px){
     :root{
       --size:min(62vw,52dvh,520px);
-      --machine-offset:-4dvh;
       --skyline-height:clamp(80px,12vh,145px);
       --grid-cell:82px;
       --grid-perspective:560px;
@@ -849,7 +895,6 @@
   @media (min-width:1025px){
     :root{
       --size:min(46vw,54dvh,560px);
-      --machine-offset:-4dvh;
       --skyline-height:clamp(96px,14vh,170px);
       --grid-cell:105px;
       --grid-perspective:680px;
@@ -884,7 +929,6 @@
   @media (min-width:700px) and (orientation:landscape) and (max-height:800px){
     :root{
       --size:min(46vw,50dvh,460px);
-      --machine-offset:-2dvh;
       --skyline-height:clamp(64px,13vh,105px);
     }
     #exitBtn,#musicBtn{top:max(10px,env(safe-area-inset-top))}

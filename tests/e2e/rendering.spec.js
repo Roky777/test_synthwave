@@ -204,19 +204,12 @@ test('requests a lighter haptic pattern after a correct answer', async ({ page }
   await expect.poll(()=>page.evaluate(()=>window.__vibratePattern)).toEqual([25,18,45]);
 });
 
-test('keeps the dynamic category label directly below the HUD', async ({ page }) => {
+test('keeps the removed category label hidden during dynamic modes', async ({ page }) => {
   await openApp(page);
   await page.click('#gradeSelectBtn');
   await page.click('.diffBtn[data-mode="explorer"]');
-  await expect(page.locator('#catTag')).toBeVisible();
-  const placement=await page.evaluate(()=>{
-    const hud=document.querySelector('#hud').getBoundingClientRect();
-    const tag=document.querySelector('#catTag').getBoundingClientRect();
-    const machine=document.querySelector('#machine').getBoundingClientRect();
-    return {hudBottom:hud.bottom,tagTop:tag.top,tagBottom:tag.bottom,machineTop:machine.top};
-  });
-  expect(placement.tagTop).toBeGreaterThanOrEqual(placement.hudBottom-2);
-  expect(placement.tagBottom).toBeLessThan(placement.machineTop);
+  await expect(page.locator('#catTag')).toHaveClass(/hidden/);
+  await expect(page.locator('#catTag')).toBeEmpty();
 });
 
 test('dims the scenery and keeps music below feedback volume during play', async ({ page }) => {
