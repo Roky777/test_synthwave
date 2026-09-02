@@ -21,7 +21,7 @@ test('all primary screens adapt across the viewport matrix',async({page})=>{
       const title=document.querySelector('.wordmark');
       const cardEls=[...document.querySelectorAll('#modeHome .diffBtn')];
       const app=rect('#app');
-      return {app,title:rect('.wordmark'),group:rect('#modeHome'),titleSize:parseFloat(getComputedStyle(title).fontSize),heading:rect('.modeSelectTitle'),
+      return {app,appBorder:getComputedStyle(document.querySelector('#app')).borderWidth,title:rect('.wordmark'),group:rect('#modeHome'),titleSize:parseFloat(getComputedStyle(title).fontSize),heading:rect('.modeSelectTitle'),
         cards:cardEls.map(el=>el.getBoundingClientRect().toJSON()),
         cardTitleSizes:cardEls.map(el=>parseFloat(getComputedStyle(el.querySelector('.modeText')).fontSize)),
         cardDescSizes:cardEls.map(el=>parseFloat(getComputedStyle(el.querySelector('small')).fontSize)),
@@ -30,6 +30,7 @@ test('all primary screens adapt across the viewport matrix',async({page})=>{
         skyline:rect('#skyline'),grid:rect('#grid'),horizon:innerHeight*.66};
     });
     expect(mode.app.height,`${width}x${height} app tracks visible viewport`).toBeCloseTo(height,0);
+    expect(mode.appBorder,`${width}x${height} outer screen remains frameless`).toBe('0px');
     expect(inside(mode.title,width,height),`${width}x${height} mode title`).toBe(true);
     expect(inside(mode.heading,width,height),`${width}x${height} mode heading`).toBe(true);
     for(const card of mode.cards)expect(inside(card,width,height),`${width}x${height} mode card`).toBe(true);

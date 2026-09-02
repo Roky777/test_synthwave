@@ -836,18 +836,13 @@
     #gradeView .modeIcon{width:38px;height:38px}
   }
 
-  /* SYNTHWAVE neon-frame UI: glowing tube borders on the HUD + an arcade-bezel frame around the screen */
+  /* SYNTHWAVE neon UI: the viewport itself stays frameless; neon remains on game controls. */
   html[data-theme="synthwave"] #app{
     width:min(calc(100vw - 12px),560px);height:calc(100dvh - 12px);
-    border:2px solid var(--grid);border-radius:26px;
-    box-shadow:0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent),
-      0 0 14px color-mix(in srgb, var(--grid) 38%, transparent),
-      inset 0 0 20px color-mix(in srgb, var(--grid) 12%, transparent);
+    border:0;border-radius:26px;box-shadow:none;
   }
   html[data-theme="synthwave"] body.game-active #app{
-    border-width:1px;border-color:color-mix(in srgb,var(--grid) 38%,transparent);
-    box-shadow:0 0 8px color-mix(in srgb,var(--grid) 18%,transparent),
-      inset 0 0 12px color-mix(in srgb,var(--grid) 6%,transparent)
+    border:0;box-shadow:none
   }
   html[data-theme="synthwave"] .hudBox{
     background:rgba(10,4,16,.55);border-width:2px;border-radius:14px;
@@ -964,7 +959,8 @@
   /* The cabinet now reaches every screen edge; content keeps its own responsive spacing. */
   #app,
   html[data-theme="synthwave"] #app{
-    width:100vw;max-width:none;height:100dvh;min-height:100dvh;padding:0;border-radius:0;
+    width:100vw;max-width:none;height:100dvh;min-height:100dvh;padding:0;
+    border:0;border-radius:0;box-shadow:none;
   }
   body:has(#startOverlay:not(.hidden)) #app,
   html[data-theme="synthwave"] body:has(#startOverlay:not(.hidden)) #app{
