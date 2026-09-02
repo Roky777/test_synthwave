@@ -17,6 +17,9 @@
 
     /* Synthwave theme: every screen shares one viewport-relative horizon. */
     --horizon-y:66%;
+    /* Portrait menu content is world-anchored: the mode group follows the horizon while
+       the wordmark remains tied to the top safe area. */
+    --mode-horizon-gap:clamp(56px,8dvh,96px);
     /* Width-driven 1:1 synthwave sun. Its centre stays just above the shared horizon and the
        lower geometry is clipped there, so no viewport can expose the complete circle. */
     --sun-size:clamp(360px,120vw,680px);
@@ -65,7 +68,7 @@
     --orb-face-d:68.8%;     /* r=103.5  / 136 */
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
-  html,body{width:100%;min-width:100%;height:100%;overflow:hidden;overscroll-behavior:none}
+  html,body{width:100%;min-width:100%;height:100%;min-height:100dvh;overflow:hidden;overscroll-behavior:none}
   body{
     background:var(--space-1);
     font-family:'Quantico';color:var(--ink);
@@ -270,7 +273,7 @@
   .bolt.b4{bottom:max(18px,env(safe-area-inset-bottom));right:max(18px,env(safe-area-inset-right))}
   body:has(#hud:not(.hidden)) .bolt{opacity:0}
 
-  #app{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;z-index:2;
+  #app{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;min-height:100dvh;z-index:2;
     display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;
     overscroll-behavior:none}
 
@@ -621,6 +624,15 @@
   #gradeView .diffBtn[data-mode="mastermind"]{border-color:#FF9138;box-shadow:0 0 11px rgba(255,145,56,.16),inset 0 0 14px rgba(255,145,56,.05)}
   #gradeView .diffBtn[data-mode="mastermind"] .modeIcon,
   #gradeView .diffBtn[data-mode="mastermind"] .chev{color:#FF9138}
+
+  /* The title and mode choices intentionally use separate vertical anchors. Extra height becomes
+     breathing room between them instead of an ever-growing gap below the cards. */
+  @media (orientation:portrait){
+    #modeHome{
+      position:absolute;left:50%;bottom:calc(100% - var(--horizon-y) + var(--mode-horizon-gap));
+      margin:0;transform:translateX(-50%)
+    }
+  }
   .themeRow{display:flex;gap:12px;width:min(420px,84vw)}
   .themeRow:not(:has(.themeBtn:not(:disabled))){display:none}
   .themeBtn{flex:1;font-family:inherit;font-weight:700;font-size:14px;letter-spacing:.06em;color:var(--dim);
@@ -710,18 +722,17 @@
   /* Phone layout: reserve room for the HUD/rules and keep every control thumb-friendly. */
   @media (max-width: 480px){
     :root{
-      --size:min(74vw,48dvh,360px);
-      /* One reference pixel from the 375x667 iPhone SE composition. Scale the
-         complete composition uniformly by its tightest viewport dimension. */
-      --landing-u:min(.266667vw,.149925dvh);
+      /* The gameplay control sizes independently. A hard floor keeps the primary
+         interaction substantial on real 320-430px phones without scaling the UI shell. */
+      --size:clamp(232px,min(76vw,48dvh),360px);
       --skyline-height:clamp(60px,11vh,90px);
       --grid-cell:68px;
     }
     #app{padding:8px}
     #hud{padding:0 max(10px,env(safe-area-inset-right)) 0 max(10px,env(safe-area-inset-left));gap:6px}
     .hudBox{min-width:0;padding:5px 8px;border-radius:9px}
-    .hudLabel{font-size:8px;letter-spacing:.13em}
-    .hudVal{font-size:clamp(15px,4.6vw,19px)}
+    .hudLabel{font-size:9px;letter-spacing:.13em}
+    .hudVal{font-size:clamp(16px,4.6vw,19px)}
     #catTag{top:calc(max(10px,env(safe-area-inset-top)) + 52px);font-size:9px;letter-spacing:.2em}
     #exitBtn,#musicBtn{top:calc(max(10px,env(safe-area-inset-top)) + 68px)}
     #rules{bottom:max(10px,env(safe-area-inset-bottom));gap:5px;padding:0 8px}
@@ -741,23 +752,25 @@
     .themeBtn{min-height:48px}
     /* Portrait mode selection: strong title, clear heading, two full-width game cards. */
     #startOverlay:has(#modeHome:not(.hidden)){
-      padding:max(32px,calc(env(safe-area-inset-top) + 22px)) 14px max(34px,env(safe-area-inset-bottom))
+      padding-top:max(32px,calc(env(safe-area-inset-top) + 22px));
+      padding-right:max(14px,env(safe-area-inset-right));
+      padding-bottom:max(34px,env(safe-area-inset-bottom));
+      padding-left:max(14px,env(safe-area-inset-left))
     }
     #startOverlay:has(#modeHome:not(.hidden))>.wordmark{
-      font-size:clamp(36px,11.6vw,48px);line-height:.86
+      font-size:clamp(38px,11.6vw,48px);line-height:.86
     }
     #modeHome{width:min(360px,92vw);margin-top:clamp(28px,4.7dvh,36px);gap:12px}
     #modeHome .diffRow{display:flex;width:100%;gap:10px}
     #modeHome .diffBtn{
-      min-height:64px;height:68px;padding:8px 11px;gap:9px;border-radius:15px
+      min-height:70px;height:clamp(70px,9dvh,76px);padding:9px 11px;gap:10px;border-radius:15px
     }
-    #modeHome .modeIcon{width:38px;height:38px}
-    #modeHome .modeText{font-size:clamp(13px,3.8vw,15px);letter-spacing:.01em;white-space:normal}
-    #modeHome .diffBtn small{font-size:clamp(8.5px,2.4vw,10px);margin-top:3px;white-space:normal}
-    #modeHome .chev{width:25px;height:25px}
+    #modeHome .modeIcon{width:42px;height:42px}
+    #modeHome .modeText{font-size:clamp(15px,4.1vw,17px);letter-spacing:.01em;white-space:normal}
+    #modeHome .diffBtn small{font-size:clamp(11px,2.9vw,12px);margin-top:3px;white-space:normal}
+    #modeHome .chev{width:28px;height:28px}
   }
   @media (max-width: 360px){
-    :root{--size:min(72vw,45dvh,320px)}
     .hudBox{padding:4px 6px}
     .chip{font-size:9px}
     .tagline br{display:none}
@@ -798,15 +811,16 @@
 
   /* Height-constrained portrait devices compress optional spacing before touch targets or type. */
   @media (orientation:portrait) and (max-height:620px){
+    :root{--mode-horizon-gap:48px}
     #startOverlay:has(#modeHome:not(.hidden)){padding-top:max(24px,calc(env(safe-area-inset-top) + 16px))}
-    #startOverlay:has(#modeHome:not(.hidden))>.wordmark{font-size:clamp(32px,10.8vw,40px)}
-    #modeHome{margin-top:clamp(18px,3.2dvh,24px);gap:8px}
-    #modeHome .diffBtn{height:62px;min-height:62px}
+    #startOverlay:has(#modeHome:not(.hidden))>.wordmark{font-size:clamp(36px,10.8vw,40px)}
+    #modeHome{gap:8px}
+    #modeHome .diffBtn{height:68px;min-height:68px}
     #startOverlay:has(#gradeView:not(.hidden)){padding-top:max(58px,calc(env(safe-area-inset-top) + 50px))}
     #gradeView{gap:18px}
     .gradeHeading h2{font-size:clamp(25px,7.5vw,30px)}
     #gradeView .diffRow{gap:7px}
-    #gradeView .diffBtn{height:58px;min-height:58px}
+    #gradeView .diffBtn{height:62px;min-height:62px}
     #gradeView .modeIcon{width:38px;height:38px}
   }
 
@@ -938,7 +952,7 @@
   /* The cabinet now reaches every screen edge; content keeps its own responsive spacing. */
   #app,
   html[data-theme="synthwave"] #app{
-    width:100vw;max-width:none;height:100dvh;padding:0;border-radius:0;
+    width:100vw;max-width:none;height:100dvh;min-height:100dvh;padding:0;border-radius:0;
   }
   body:has(#startOverlay:not(.hidden)) #app,
   html[data-theme="synthwave"] body:has(#startOverlay:not(.hidden)) #app{
@@ -948,8 +962,8 @@
   /* Mobile browsers have a much smaller compositing budget than desktop GPUs. Animating the
      background position of the large masked/filtered 3D floor forces a full repaint each frame
      and can flash as the browser promotes and evicts layers. Keep the floor moving with a
-     compositor-only transform and remove the costly blur passes on phones. A stable height prevents
-     browser chrome opening/closing from continuously resizing the whole game. */
+     compositor-only transform and remove the costly blur passes on phones. The app deliberately
+     remains tied to dvh so browser-chrome changes update the actual visible game viewport. */
   @media (max-width:600px){
     #grid::before{
       animation:gridMoveMobile var(--grid-speed) linear infinite;
@@ -958,7 +972,4 @@
     }
     #ringSvg{filter:none}
     .hudBox,#exitBtn,#musicBtn,#gradeBackBtn,#banner,#quitDialog{backdrop-filter:none;-webkit-backdrop-filter:none}
-    @supports (height:100svh){
-      #app,html[data-theme="synthwave"] #app{height:100svh}
-    }
   }
