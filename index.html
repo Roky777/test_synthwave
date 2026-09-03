@@ -91,6 +91,17 @@
      moving floor — is drawn in CSS/SVG. There are no background image assets, so the whole thing
      recolours from the vars in :root without anyone re-exporting art. */
 
+  /* Opening-screen artwork supplied with the approved mode-select reference. It is isolated from
+     the procedural environment so grade selection and gameplay retain their existing backdrop. */
+  #modeHomeBackdrop{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0;
+    background:#080314 url('./src/assets/mode-select-background.svg') center center/cover no-repeat;
+    transition:opacity .35s ease}
+  body:has(#startOverlay:not(.hidden) #modeHome:not(.hidden)){--scene-scrim:.12}
+  body:has(#startOverlay:not(.hidden) #modeHome:not(.hidden)) #modeHomeBackdrop{opacity:1}
+  body:has(#startOverlay:not(.hidden) #modeHome:not(.hidden)) :is(#bgFx,#bgArt,#stars,#hyperspace,#blackhole,#sun,#sunTint,#skyline,#horizonGlow,#grid){
+    opacity:0!important
+  }
+
   /* Atmospheric bloom behind the horizon: the reference's r=140 circle under a 40px Gaussian blur,
      scaled to the viewport. Gives the sunset band something to sit in so the sky isn't flat. */
   #bgArt{position:fixed;left:50%;top:var(--horizon-y);width:var(--haze-size);aspect-ratio:1;
@@ -985,6 +996,7 @@
 </head>
 <body>
 <audio id="themeMusic" preload="auto"></audio>
+<div id="modeHomeBackdrop" aria-hidden="true"></div>
 <div id="bgFx"></div>
 <div id="bgArt"></div>
 <div id="stars"></div>
