@@ -567,7 +567,7 @@
   /* The landing page intentionally inherits the gameplay horizon, sun, skyline and grid
      measurements. Only its foreground controls change, so both screens remain one scene. */
   #startOverlay:has(#modeHome:not(.hidden))>.wordmark{
-    flex:none;font-size:clamp(36px,min(11.2vw,5.9dvh),58px);line-height:.86;letter-spacing:.025em}
+    flex:none;font-size:clamp(40px,min(12.2vw,6.5dvh),64px);line-height:.86;letter-spacing:.025em}
   #startOverlay:has(#modeHome:not(.hidden))>.tagline{
     flex:none;width:min(520px,88vw);margin:clamp(6px,.8dvh,9px) 0 0;white-space:normal;line-height:1.4}
   #modeHome{flex:none;width:min(580px,92vw);margin:clamp(25px,3.8dvh,40px) 0 0;padding:0;gap:clamp(12px,1.6dvh,16px)}
@@ -582,10 +582,8 @@
     padding:9px 15px;border-width:1.5px;border-radius:16px;overflow:hidden;background:rgba(8,2,16,.9)}
   #modeHome .diffBtn::before{content:"";position:absolute;inset:0;pointer-events:none;
     background:linear-gradient(120deg,rgba(255,255,255,.08),transparent 38%)}
-  #modeHome .diffBtn[data-mode="classic"]{border-color:#49E9FF;
-    box-shadow:0 0 11px rgba(73,233,255,.14),inset 0 0 16px rgba(73,233,255,.045)}
-  #modeHome #gradeSelectBtn{border-color:#F45CDA;
-    box-shadow:0 0 16px rgba(244,92,218,.2),inset 0 0 20px rgba(244,92,218,.05)}
+  #modeHome .diffBtn[data-mode="classic"],#modeHome #gradeSelectBtn{border-color:#B44CFF;
+    box-shadow:0 0 14px rgba(180,76,255,.2),inset 0 0 18px rgba(180,76,255,.05)}
   #modeHome .modeIcon{width:clamp(40px,5.2dvh,47px);height:clamp(40px,5.2dvh,47px)}
   #modeHome .modeText{font-size:clamp(16px,4.4vw,20px);text-align:left}
   #modeHome .modeText strong{display:block;font:inherit}
@@ -762,7 +760,7 @@
       padding-left:max(14px,env(safe-area-inset-left))
     }
     #startOverlay:has(#modeHome:not(.hidden))>.wordmark{
-      font-size:clamp(38px,11.6vw,48px);line-height:.86
+      font-size:clamp(42px,12.8vw,54px);line-height:.86
     }
     #modeHome{width:min(360px,92vw);margin-top:clamp(28px,4.7dvh,36px);gap:12px}
     #modeHome .diffRow{display:flex;width:100%;gap:10px}
@@ -816,7 +814,7 @@
   /* Height-constrained portrait devices compress optional spacing before touch targets or type. */
   @media (orientation:portrait) and (max-height:620px){
     :root{--mode-horizon-gap:48px}
-    #startOverlay:has(#modeHome:not(.hidden))>.wordmark{font-size:clamp(36px,10.8vw,40px)}
+    #startOverlay:has(#modeHome:not(.hidden))>.wordmark{font-size:clamp(40px,11.8vw,44px)}
     #modeHome{gap:8px}
     #modeHome .diffBtn{height:68px;min-height:68px}
     #startOverlay:has(#gradeView:not(.hidden)){padding-top:max(58px,calc(env(safe-area-inset-top) + 50px))}

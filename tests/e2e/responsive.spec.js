@@ -49,7 +49,7 @@ test('all primary screens adapt across the viewport matrix',async({page})=>{
     expect(mode.horizon/height).toBeLessThanOrEqual(.68);
     if(width<=480&&height>width){
       const viewportBottomGap=height-mode.group.bottom;
-      expect(mode.titleSize,`${width}x${height} title remains prominent`).toBeGreaterThanOrEqual(36);
+      expect(mode.titleSize,`${width}x${height} title remains prominent`).toBeGreaterThanOrEqual(40);
       expect(mode.group.top,`${width}x${height} title and mode group do not overlap`).toBeGreaterThanOrEqual(mode.title.bottom-1);
       expect(viewportBottomGap,`${width}x${height} lower mode group offset`).toBeGreaterThanOrEqual(91);
       expect(viewportBottomGap,`${width}x${height} lower mode group offset cap`).toBeLessThanOrEqual(121);

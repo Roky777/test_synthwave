@@ -12,6 +12,9 @@ test.describe('mode select screen', () => {
     await expect(page.locator('#startOverlay')).toBeVisible();
     await expect(page.locator('.diffBtn[data-mode="classic"]')).toContainText('RANDOM');
     await expect(page.locator('#gradeSelectBtn')).toContainText('GRADE-SPECIFIC');
+    const borders=await page.locator('#modeHome .diffBtn').evaluateAll(cards=>cards.map(card=>getComputedStyle(card).borderColor));
+    expect(new Set(borders).size).toBe(1);
+    expect(borders[0]).toBe('rgb(180, 76, 255)');
     await expect(page.locator('#gradeView')).toHaveClass(/hidden/);
   });
 
