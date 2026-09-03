@@ -28,6 +28,7 @@ test.describe('mode select screen', () => {
     const gradeBorders=await page.locator('#gradeView .diffBtn').evaluateAll(cards=>cards.map(card=>getComputedStyle(card).borderColor));
     expect(new Set(gradeBorders).size).toBe(1);
     expect(gradeBorders[0]).toBe('rgb(180, 76, 255)');
+    await expect(page.locator('#gradeView .chev svg')).toHaveCount(3);
     await page.click('#gradeBackBtn');
     await expect(page.locator('#modeHome')).not.toHaveClass(/hidden/);
     await expect(page.locator('#gradeView')).toHaveClass(/hidden/);

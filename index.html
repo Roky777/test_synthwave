@@ -624,7 +624,9 @@
   #gradeView .modeText{font-size:clamp(18px,5vw,23px);text-shadow:0 2px 3px #000}
   #gradeView .diffBtn small{margin-top:5px;font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:#E6CDEB}
   #gradeView .chev{width:26px;height:26px;display:grid;place-items:center;border:1px solid currentColor;
-    border-radius:50%;background:color-mix(in srgb,currentColor 10%,transparent);font-size:21px;text-shadow:none}
+    border-radius:50%;background:color-mix(in srgb,currentColor 10%,transparent);font-size:0;text-shadow:none}
+  #gradeView .chev svg{display:block;width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.4;
+    stroke-linecap:round;stroke-linejoin:round}
   #gradeView .diffBtn[data-mode="explorer"],
   #gradeView .diffBtn[data-mode="challenger"],
   #gradeView .diffBtn[data-mode="mastermind"]{border-color:#B44CFF;
@@ -1104,17 +1106,17 @@
         <button class="diffBtn" data-mode="explorer">
           <img class="modeIcon" src="src/assets/icons/explorer-compass.svg" width="54" height="54" alt="">
           <span class="modeText">EXPLORER<small>Grades 4–6</small></span>
-          <span class="chev" aria-hidden="true">›</span>
+          <span class="chev" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="m7.5 4.5 5.5 5.5-5.5 5.5"/></svg></span>
         </button>
         <button class="diffBtn" data-mode="challenger">
           <img class="modeIcon" src="src/assets/icons/challenger-cross.svg" width="54" height="54" alt="">
           <span class="modeText">CHALLENGER<small>Grades 7–10</small></span>
-          <span class="chev" aria-hidden="true">›</span>
+          <span class="chev" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="m7.5 4.5 5.5 5.5-5.5 5.5"/></svg></span>
         </button>
         <button class="diffBtn" data-mode="mastermind">
           <img class="modeIcon" src="src/assets/icons/mastermind-knight.svg" width="54" height="54" alt="">
           <span class="modeText">MASTERMIND<small>Grades 11–12</small></span>
-          <span class="chev" aria-hidden="true">›</span>
+          <span class="chev" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="m7.5 4.5 5.5 5.5-5.5 5.5"/></svg></span>
         </button>
       </div>
       <button id="gradeBackBtn" aria-label="Back to mode select" title="Back to mode select"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6"/></svg></button>

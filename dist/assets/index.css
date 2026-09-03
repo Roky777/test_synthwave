@@ -613,7 +613,9 @@
   #gradeView .modeText{font-size:clamp(18px,5vw,23px);text-shadow:0 2px 3px #000}
   #gradeView .diffBtn small{margin-top:5px;font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:#E6CDEB}
   #gradeView .chev{width:26px;height:26px;display:grid;place-items:center;border:1px solid currentColor;
-    border-radius:50%;background:color-mix(in srgb,currentColor 10%,transparent);font-size:21px;text-shadow:none}
+    border-radius:50%;background:color-mix(in srgb,currentColor 10%,transparent);font-size:0;text-shadow:none}
+  #gradeView .chev svg{display:block;width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.4;
+    stroke-linecap:round;stroke-linejoin:round}
   #gradeView .diffBtn[data-mode="explorer"],
   #gradeView .diffBtn[data-mode="challenger"],
   #gradeView .diffBtn[data-mode="mastermind"]{border-color:#B44CFF;
