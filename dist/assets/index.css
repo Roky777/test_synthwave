@@ -571,6 +571,7 @@
   #startOverlay:has(#modeHome:not(.hidden))>.tagline{
     flex:none;width:min(520px,88vw);margin:clamp(12px,1.8dvh,17px) 0 0;white-space:normal;line-height:1.4}
   #modeHome{flex:none;width:min(580px,92vw);margin:clamp(25px,3.8dvh,40px) 0 0;padding:0;gap:clamp(12px,1.6dvh,16px)}
+  #modeHome .modeSelectTitle{display:none}
   .modeSelectTitle{width:100%;display:flex;align-items:center;gap:14px;color:#FFEAF9;
     font-size:clamp(11px,2.8vw,14px);font-weight:700;letter-spacing:.2em;white-space:nowrap;
     text-shadow:0 0 10px rgba(255,75,165,.55)}
@@ -628,8 +629,11 @@
   /* The title and mode choices intentionally use separate vertical anchors. Extra height becomes
      breathing room between them instead of an ever-growing gap below the cards. */
   @media (orientation:portrait){
+    #startOverlay:has(#modeHome:not(.hidden)){
+      padding-top:max(clamp(64px,12dvh,104px),calc(env(safe-area-inset-top) + 22px))
+    }
     #modeHome{
-      position:absolute;left:50%;bottom:calc(100% - var(--horizon-y) + var(--mode-horizon-gap));
+      position:absolute;left:50%;bottom:max(clamp(92px,11dvh,120px),calc(env(safe-area-inset-bottom) + 24px));
       margin:0;transform:translateX(-50%)
     }
   }
@@ -753,7 +757,6 @@
     .themeBtn{min-height:48px}
     /* Portrait mode selection: strong title, clear heading, two full-width game cards. */
     #startOverlay:has(#modeHome:not(.hidden)){
-      padding-top:max(32px,calc(env(safe-area-inset-top) + 22px));
       padding-right:max(14px,env(safe-area-inset-right));
       padding-bottom:max(34px,env(safe-area-inset-bottom));
       padding-left:max(14px,env(safe-area-inset-left))
@@ -813,7 +816,6 @@
   /* Height-constrained portrait devices compress optional spacing before touch targets or type. */
   @media (orientation:portrait) and (max-height:620px){
     :root{--mode-horizon-gap:48px}
-    #startOverlay:has(#modeHome:not(.hidden)){padding-top:max(24px,calc(env(safe-area-inset-top) + 16px))}
     #startOverlay:has(#modeHome:not(.hidden))>.wordmark{font-size:clamp(36px,10.8vw,40px)}
     #modeHome{gap:8px}
     #modeHome .diffBtn{height:68px;min-height:68px}
