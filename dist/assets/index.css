@@ -569,7 +569,7 @@
   #startOverlay:has(#modeHome:not(.hidden))>.wordmark{
     flex:none;font-size:clamp(36px,min(11.2vw,5.9dvh),58px);line-height:.86;letter-spacing:.025em}
   #startOverlay:has(#modeHome:not(.hidden))>.tagline{
-    flex:none;width:min(520px,88vw);margin:clamp(12px,1.8dvh,17px) 0 0;white-space:normal;line-height:1.4}
+    flex:none;width:min(520px,88vw);margin:clamp(6px,.8dvh,9px) 0 0;white-space:normal;line-height:1.4}
   #modeHome{flex:none;width:min(580px,92vw);margin:clamp(25px,3.8dvh,40px) 0 0;padding:0;gap:clamp(12px,1.6dvh,16px)}
   #modeHome .modeSelectTitle{display:none}
   .modeSelectTitle{width:100%;display:flex;align-items:center;gap:14px;color:#FFEAF9;
@@ -630,7 +630,7 @@
      breathing room between them instead of an ever-growing gap below the cards. */
   @media (orientation:portrait){
     #startOverlay:has(#modeHome:not(.hidden)){
-      padding-top:max(clamp(64px,12dvh,104px),calc(env(safe-area-inset-top) + 22px))
+      padding-top:max(clamp(56px,10.5dvh,92px),calc(env(safe-area-inset-top) + 22px))
     }
     #modeHome{
       position:absolute;left:50%;bottom:max(clamp(92px,11dvh,120px),calc(env(safe-area-inset-bottom) + 24px));
