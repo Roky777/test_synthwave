@@ -36,13 +36,7 @@ test('all primary screens adapt across the viewport matrix',async({page})=>{
     for(const card of mode.cards)expect(inside(card,width,height),`${width}x${height} mode card`).toBe(true);
     expect(mode.cards[0].width).toBeCloseTo(mode.cards[1].width,0);
     expect(mode.cards[0].height).toBeCloseTo(mode.cards[1].height,0);
-    if(height<=width)
-      expect(Math.max(...mode.cards.map(card=>card.bottom)),`${width}x${height} landscape mode cards above horizon`).toBeLessThan(mode.horizon);
-    else{
-      const viewportBottomGap=height-mode.group.bottom;
-      expect(viewportBottomGap,`${width}x${height} mode group lower offset minimum`).toBeGreaterThanOrEqual(51);
-      expect(viewportBottomGap,`${width}x${height} mode group lower offset maximum`).toBeLessThanOrEqual(85);
-    }
+    expect(Math.max(...mode.cards.map(card=>card.bottom)),`${width}x${height} mode cards above horizon`).toBeLessThan(mode.horizon);
     expect(mode.sun.width).toBeCloseTo(mode.sun.height,0);
     expect(mode.sun.width).toBeGreaterThanOrEqual(360);
     expect(mode.sun.width).toBeLessThanOrEqual(680);
@@ -53,8 +47,12 @@ test('all primary screens adapt across the viewport matrix',async({page})=>{
     expect(mode.horizon/height).toBeGreaterThanOrEqual(.62);
     expect(mode.horizon/height).toBeLessThanOrEqual(.68);
     if(width<=480&&height>width){
+      const horizonGap=mode.horizon-mode.group.bottom;
+      const expectedGap=height<=620?[47,49]:height<=700?[59,79]:[104,151];
       expect(mode.titleSize,`${width}x${height} title remains prominent`).toBeGreaterThanOrEqual(36);
       expect(mode.group.top,`${width}x${height} title and mode group do not overlap`).toBeGreaterThanOrEqual(mode.title.bottom-1);
+      expect(horizonGap,`${width}x${height} mode group horizon gap minimum`).toBeGreaterThanOrEqual(expectedGap[0]);
+      expect(horizonGap,`${width}x${height} mode group horizon gap maximum`).toBeLessThanOrEqual(expectedGap[1]);
       expect(Math.min(...mode.cards.map(card=>card.height)),`${width}x${height} card touch height`).toBeGreaterThanOrEqual(68);
       expect(Math.min(...mode.cardTitleSizes),`${width}x${height} card title legibility`).toBeGreaterThanOrEqual(15);
       expect(Math.min(...mode.cardDescSizes),`${width}x${height} card description legibility`).toBeGreaterThanOrEqual(11);

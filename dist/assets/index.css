@@ -643,11 +643,6 @@
       position:absolute;left:50%;bottom:calc(100% - var(--horizon-y) + var(--mode-horizon-gap));
       margin:0;transform:translateX(-50%)
     }
-    /* The dedicated opening artwork carries its own visual horizon. Place the complete mode
-       group low over the road, matching the approved reference, without affecting other views. */
-    body:has(#startOverlay:not(.hidden) #modeHome:not(.hidden)) #modeHome{
-      bottom:max(clamp(52px,7dvh,84px),calc(env(safe-area-inset-bottom) + 20px))
-    }
   }
   .themeRow{display:flex;gap:12px;width:min(420px,84vw)}
   .themeRow:not(:has(.themeBtn:not(:disabled))){display:none}
