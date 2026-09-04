@@ -99,7 +99,7 @@ const MUSIC_MUTED_KEY='wyp-music-muted';
 const themeBtns=document.querySelectorAll('.themeBtn');
 const THEME_TRACK_START={synthwave:0,nebula:32};
 // Background music is intentionally atmospheric; gameplay cues and countdown ticks stay dominant.
-const MAX_MUSIC_VOLUME=.025;
+const MAX_MUSIC_VOLUME=.035;
 let musicLevel=.2;
 try{
   const savedLevel=Number(localStorage.getItem(MUSIC_VOLUME_KEY)??.2);
@@ -496,7 +496,9 @@ function showPrompt(){
       if(held>=2000){G.holdDone=true;holdCompleteHaptic();succeed('ROCK-SOLID GRIP',false);return;}
     }
     const secLeft=Math.ceil(left*G.dur/1000);
-    if(left<0.32&&secLeft!==G.lastTick){G.lastTick=secLeft;sTick();}
+    // The countdown click is the primary audio clock. Play it once per displayed second for the
+    // complete timer; instruction text never changes its cadence or treatment.
+    if(secLeft!==G.lastTick){G.lastTick=secLeft;sTick();}
     if(left<=0){onTimeout();return;}
     G.raf=requestAnimationFrame(loop);
   };

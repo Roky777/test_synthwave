@@ -220,7 +220,7 @@ test('dims the scenery and keeps music below feedback volume during play', async
     musicVolume:document.querySelector('#themeMusic').volume,
   }));
   expect(state.active).toBe(true);
-  expect(state.musicVolume).toBeLessThanOrEqual(.006);
+  expect(state.musicVolume).toBeLessThanOrEqual(.008);
   await expect.poll(()=>page.evaluate(() =>
     parseFloat(getComputedStyle(document.querySelector('#sun')).opacity)
   )).toBeLessThan(.7);
