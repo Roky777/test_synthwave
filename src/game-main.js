@@ -444,7 +444,7 @@ function showPrompt(){
     setAccent('#B24BF3','CLASSIC');
   }
   G.presses=0;G.holdStart=0;G.holdDone=false;G.phase='live';
-  G.dur=it.dur*1000;G.t0=performance.now();G.lastTick=-1;
+  G.dur=it.dur*1000;G.t0=performance.now();G.nextTickAt=G.t0;
   const promptLength=(it.text||'').trim().length;
   els.btn.classList.toggle('shortPrompt',promptLength<=12&&!it.emoji&&!it.big);
   els.btn.classList.toggle('longPrompt',promptLength>18);
@@ -495,10 +495,13 @@ function showPrompt(){
       els.holdFill.style.width=Math.min(100,held/20)+'%';
       if(held>=2000){G.holdDone=true;holdCompleteHaptic();succeed('ROCK-SOLID GRIP',false);return;}
     }
-    const secLeft=Math.ceil(left*G.dur/1000);
-    // The countdown click is the primary audio clock. Play it once per displayed second for the
-    // complete timer; instruction text never changes its cadence or treatment.
-    if(secLeft!==G.lastTick){G.lastTick=secLeft;sTick();}
+    // The countdown click is the primary audio clock. Start immediately, then tighten the interval
+    // from ~1s toward ~350ms as time runs out; instruction text never changes this cadence.
+    if(now>=G.nextTickAt){
+      sTick();
+      const progress=Math.max(0,Math.min(1,1-left));
+      G.nextTickAt=now+(1000-650*progress);
+    }
     if(left<=0){onTimeout();return;}
     G.raf=requestAnimationFrame(loop);
   };
