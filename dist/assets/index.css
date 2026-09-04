@@ -68,7 +68,7 @@
     --orb-face-d:68.8%;     /* r=103.5  / 136 */
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
-  html,body{width:100%;min-width:100%;height:var(--app-height,100dvh);min-height:var(--app-height,100dvh);overflow:hidden;overscroll-behavior:none}
+  html,body{width:100%;min-width:100%;height:100%;min-height:100dvh;overflow:hidden;overscroll-behavior:none}
   body{
     background:var(--space-1);
     font-family:'Quantico';color:var(--ink);
@@ -281,7 +281,7 @@
   .bolt.b4{bottom:max(18px,env(safe-area-inset-bottom));right:max(18px,env(safe-area-inset-right))}
   body:has(#hud:not(.hidden)) .bolt{opacity:0}
 
-  #app{position:fixed;inset:0;width:100vw;height:var(--app-height,100dvh);min-height:var(--app-height,100dvh);z-index:2;
+  #app{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;min-height:100dvh;z-index:2;
     display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;
     overscroll-behavior:none}
 
@@ -642,7 +642,7 @@
       padding-top:max(clamp(56px,10.5dvh,92px),calc(env(safe-area-inset-top) + 22px))
     }
     #modeHome{
-      position:absolute;left:50%;bottom:max(clamp(92px,11dvh,120px),calc(env(safe-area-inset-bottom) + 24px));
+      position:fixed;left:50%;bottom:max(clamp(92px,11dvh,120px),calc(env(safe-area-inset-bottom) + 24px));
       margin:0;transform:translateX(-50%)
     }
   }
@@ -959,7 +959,7 @@
   /* The cabinet now reaches every screen edge; content keeps its own responsive spacing. */
   #app,
   html[data-theme="synthwave"] #app{
-    width:100vw;max-width:none;height:var(--app-height,100dvh);min-height:var(--app-height,100dvh);padding:0;
+    width:100vw;max-width:none;height:100dvh;min-height:100dvh;padding:0;
     border:0;border-radius:0;box-shadow:none;
   }
   body:has(#startOverlay:not(.hidden)) #app,

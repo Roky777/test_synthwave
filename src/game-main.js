@@ -44,19 +44,6 @@ async function loadThemeTracks(){
 }
 
 async function main(){
-// iOS Safari can keep a stale CSS viewport while its address/tab bars animate. Anchor the app
-// to the *visible* viewport so the bottom of a run never ends up behind browser chrome.
-function syncVisibleViewport(){
-  // Chrome's desktop device emulator can report a visual viewport larger than the emulated CSS
-  // viewport. Never let that enlarge the app past `innerHeight`; on iOS the smaller visible value
-  // still wins when browser chrome is present.
-  const height=Math.min(window.innerHeight,window.visualViewport?.height||window.innerHeight);
-  if(height)document.documentElement.style.setProperty('--app-height',`${Math.round(height)}px`);
-}
-syncVisibleViewport();
-window.visualViewport?.addEventListener('resize',syncVisibleViewport);
-window.visualViewport?.addEventListener('scroll',syncVisibleViewport);
-window.addEventListener('orientationchange',()=>setTimeout(syncVisibleViewport,120));
 await loadGameData();
 const THEME_TRACKS=await loadThemeTracks();
 
