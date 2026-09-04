@@ -79,7 +79,7 @@
     --orb-face-d:68.8%;     /* r=103.5  / 136 */
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
-  html,body{width:100%;min-width:100%;height:100%;min-height:100dvh;overflow:hidden;overscroll-behavior:none}
+  html,body{width:100%;min-width:100%;height:var(--app-height,100dvh);min-height:var(--app-height,100dvh);overflow:hidden;overscroll-behavior:none}
   body{
     background:var(--space-1);
     font-family:'Quantico';color:var(--ink);
@@ -195,8 +195,8 @@
   #frontEnergy{position:fixed;left:50%;top:48%;width:min(90vw,600px);height:min(56dvh,620px);
     transform:translate(-50%,-50%);z-index:1;pointer-events:none;opacity:0;
     background:url('./src/assets/front-energy-overlay.png') center/contain no-repeat;
-    mix-blend-mode:screen;filter:saturate(.72) brightness(.7);transition:opacity .35s ease}
-  body:has(#startOverlay:not(.hidden) #modeHome:not(.hidden)) #frontEnergy{opacity:.38}
+    mix-blend-mode:screen;filter:saturate(.84) brightness(.82);transition:opacity .35s ease}
+  body:has(#startOverlay:not(.hidden) #modeHome:not(.hidden)) #frontEnergy{opacity:.44}
   body::after{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;
     background:#000;opacity:var(--scene-scrim);transition:opacity .6s}
   /* The sunset line: a 2px bar straddling the horizon under six stacked blurs, the same layering
@@ -292,7 +292,7 @@
   .bolt.b4{bottom:max(18px,env(safe-area-inset-bottom));right:max(18px,env(safe-area-inset-right))}
   body:has(#hud:not(.hidden)) .bolt{opacity:0}
 
-  #app{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;min-height:100dvh;z-index:2;
+  #app{position:fixed;inset:0;width:100vw;height:var(--app-height,100dvh);min-height:var(--app-height,100dvh);z-index:2;
     display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;
     overscroll-behavior:none}
 
@@ -339,12 +339,12 @@
     color:var(--orb-ring);font:700 9px/1.4 'Quantico';letter-spacing:.08em;cursor:pointer}
   #startAudioControl{position:absolute;z-index:8;top:max(10px,env(safe-area-inset-top));
     right:max(12px,env(safe-area-inset-right));width:44px;height:44px}
-  #startAudioBtn{width:44px;height:44px;padding:0;border:2px solid var(--orb-bezel);border-radius:50%;
+  #startAudioBtn{width:44px;height:44px;padding:0;border:2px solid var(--orb-bezel);border-radius:12px;
     display:grid;place-items:center;background:linear-gradient(145deg,rgba(10,4,22,.94),rgba(45,8,55,.9));color:#E9FCFF;
     border-width:1px;border-color:color-mix(in srgb,var(--grid) 78%,transparent);
     box-shadow:0 0 6px color-mix(in srgb,var(--grid) 42%,transparent),
       inset 0 0 8px color-mix(in srgb,var(--accent) 18%,transparent);cursor:pointer}
-  #startAudioBtn svg{width:20px;height:20px}
+  #startAudioBtn svg{width:21px;height:21px}
   #startVolumePanel{position:absolute;right:0;top:52px;width:44px;height:148px;padding:7px 4px;
     border:1.5px solid rgba(61,231,255,.82);border-radius:11px;background:rgba(8,3,18,.9);
     box-shadow:0 0 12px rgba(61,231,255,.24);display:grid;grid-template-rows:26px 1fr 18px;
@@ -970,7 +970,7 @@
   /* The cabinet now reaches every screen edge; content keeps its own responsive spacing. */
   #app,
   html[data-theme="synthwave"] #app{
-    width:100vw;max-width:none;height:100dvh;min-height:100dvh;padding:0;
+    width:100vw;max-width:none;height:var(--app-height,100dvh);min-height:var(--app-height,100dvh);padding:0;
     border:0;border-radius:0;box-shadow:none;
   }
   body:has(#startOverlay:not(.hidden)) #app,
@@ -1078,11 +1078,11 @@
   <!-- START / MODE SELECT -->
   <div class="overlay" id="startOverlay">
     <div id="startAudioControl" aria-label="Music controls">
-      <button id="startAudioBtn" type="button" aria-label="Adjust music volume" aria-expanded="false" title="Adjust music volume"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor" stroke="none"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg></button>
+      <button id="startAudioBtn" type="button" aria-label="Open music settings" aria-expanded="false" title="Music settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 7h14M5 17h14"/><circle cx="9" cy="7" r="2.2" fill="currentColor" stroke="none"/><circle cx="15" cy="17" r="2.2" fill="currentColor" stroke="none"/></svg></button>
       <div id="startVolumePanel" class="hidden">
         <button id="startMuteToggle" class="audioToggle" type="button">MUTE</button>
-        <input id="startVolumeSlider" type="range" min="0" max="100" step="1" value="30" aria-label="Music volume">
-        <span id="startVolumeValue">30%</span>
+        <input id="startVolumeSlider" type="range" min="0" max="100" step="1" value="15" aria-label="Music volume">
+        <span id="startVolumeValue">15%</span>
       </div>
     </div>
     <h1 class="wordmark">

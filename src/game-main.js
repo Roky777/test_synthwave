@@ -44,6 +44,16 @@ async function loadThemeTracks(){
 }
 
 async function main(){
+// iOS Safari can keep a stale CSS viewport while its address/tab bars animate. Anchor the app
+// to the *visible* viewport so the bottom of a run never ends up behind browser chrome.
+function syncVisibleViewport(){
+  const height=window.visualViewport?.height;
+  if(height)document.documentElement.style.setProperty('--app-height',`${Math.round(height)}px`);
+}
+syncVisibleViewport();
+window.visualViewport?.addEventListener('resize',syncVisibleViewport);
+window.visualViewport?.addEventListener('scroll',syncVisibleViewport);
+window.addEventListener('orientationchange',()=>setTimeout(syncVisibleViewport,120));
 await loadGameData();
 const THEME_TRACKS=await loadThemeTracks();
 
@@ -99,10 +109,10 @@ const MUSIC_MUTED_KEY='wyp-music-muted';
 const themeBtns=document.querySelectorAll('.themeBtn');
 const THEME_TRACK_START={synthwave:0,nebula:32};
 // Background music is intentionally atmospheric; gameplay cues and countdown ticks stay dominant.
-const MAX_MUSIC_VOLUME=.035;
-let musicLevel=.2;
+const MAX_MUSIC_VOLUME=.028;
+let musicLevel=.15;
 try{
-  const savedLevel=Number(localStorage.getItem(MUSIC_VOLUME_KEY)??.2);
+  const savedLevel=Number(localStorage.getItem(MUSIC_VOLUME_KEY)??.15);
   if(Number.isFinite(savedLevel))musicLevel=Math.max(0,Math.min(1,savedLevel));
 }catch{}
 let musicMuted=false;
@@ -133,7 +143,7 @@ applyMusicLevel(musicLevel,false);
 function toggleMusicPlayback(){
   clearTimeout(musicPauseTO);
   if(musicMuted){
-    if(musicLevel===0)musicLevel=.2;
+    if(musicLevel===0)musicLevel=.15;
     musicMuted=false;
     applyMusicLevel(musicLevel,false);
     playThemeMusic();
