@@ -220,7 +220,7 @@ test('dims the scenery and keeps music below feedback volume during play', async
     musicVolume:document.querySelector('#themeMusic').volume,
   }));
   expect(state.active).toBe(true);
-  expect(state.musicVolume).toBeLessThanOrEqual(.02);
+  expect(state.musicVolume).toBeLessThanOrEqual(.006);
   await expect.poll(()=>page.evaluate(() =>
     parseFloat(getComputedStyle(document.querySelector('#sun')).opacity)
   )).toBeLessThan(.7);
@@ -233,6 +233,7 @@ test('toggles game music directly from the speaker button', async ({ page }) => 
   await expect(page.locator('#musicBtn')).toHaveClass(/muted/);
   await expect(page.locator('#musicBtn')).toHaveAttribute('aria-label','Play music');
   await expect.poll(()=>page.evaluate(()=>localStorage.getItem('wyp-music-muted'))).toBe('1');
+  await expect.poll(()=>page.evaluate(()=>document.querySelector('#themeMusic').paused)).toBe(true);
   await page.click('#musicBtn');
   await expect(page.locator('#musicBtn')).not.toHaveClass(/muted/);
   await expect(page.locator('#musicBtn')).toHaveAttribute('aria-label','Mute music');

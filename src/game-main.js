@@ -98,16 +98,17 @@ const MUSIC_VOLUME_KEY='wyp-music-volume';
 const MUSIC_MUTED_KEY='wyp-music-muted';
 const themeBtns=document.querySelectorAll('.themeBtn');
 const THEME_TRACK_START={synthwave:0,nebula:32};
-const MAX_MUSIC_VOLUME=.06;
-let musicLevel=.3;
+// Background music is intentionally atmospheric; gameplay cues and countdown ticks stay dominant.
+const MAX_MUSIC_VOLUME=.025;
+let musicLevel=.2;
 try{
-  const savedLevel=Number(localStorage.getItem(MUSIC_VOLUME_KEY)??.3);
+  const savedLevel=Number(localStorage.getItem(MUSIC_VOLUME_KEY)??.2);
   if(Number.isFinite(savedLevel))musicLevel=Math.max(0,Math.min(1,savedLevel));
 }catch{}
 let musicMuted=false;
 try{musicMuted=localStorage.getItem(MUSIC_MUTED_KEY)==='1';}catch{}
 if(musicLevel===0)musicMuted=true;
-let musicSource=null,musicFilter=null,musicGain=null,pendingMusicFade=false;
+let musicSource=null,musicFilter=null,musicGain=null,pendingMusicFade=false,musicPauseTO=0;
 function syncMusicControls(){
   const percent=Math.round(musicLevel*100);
   els.startVolumeSlider.value=String(percent);
@@ -130,10 +131,38 @@ function applyMusicLevel(level,unmute=true){
 }
 applyMusicLevel(musicLevel,false);
 function toggleMusicPlayback(){
-  if(musicMuted&&musicLevel===0)musicLevel=.3;
-  musicMuted=!musicMuted;
-  applyMusicLevel(musicLevel,false);
-  if(musicMuted)els.themeMusic.pause();else playThemeMusic();
+  clearTimeout(musicPauseTO);
+  if(musicMuted){
+    if(musicLevel===0)musicLevel=.2;
+    musicMuted=false;
+    applyMusicLevel(musicLevel,false);
+    playThemeMusic();
+    if(musicGain&&AC){
+      const now=AC.currentTime;
+      musicGain.gain.cancelScheduledValues(now);
+      musicGain.gain.setValueAtTime(.001,now);
+      musicGain.gain.exponentialRampToValueAtTime(1,now+.12);
+    }
+    return;
+  }
+  musicMuted=true;
+  syncMusicControls();syncMusicButton();
+  try{localStorage.setItem(MUSIC_MUTED_KEY,'1');}catch{}
+  if(musicGain&&AC&&!els.themeMusic.paused){
+    // Fade to near-silence before pausing. An immediate media-element cut can create an audible
+    // discontinuity (the brief "hangup" pop heard on some phone audio stacks).
+    const now=AC.currentTime;
+    els.themeMusic.muted=false;
+    musicGain.gain.cancelScheduledValues(now);
+    musicGain.gain.setValueAtTime(Math.max(.001,musicGain.gain.value),now);
+    musicGain.gain.exponentialRampToValueAtTime(.001,now+.07);
+    musicPauseTO=setTimeout(()=>{
+      if(!musicMuted)return;
+      els.themeMusic.pause();els.themeMusic.muted=true;
+    },90);
+  }else{
+    els.themeMusic.pause();els.themeMusic.muted=true;
+  }
 }
 function ensureMusicAudioGraph(){
   if(musicFilter)return;
