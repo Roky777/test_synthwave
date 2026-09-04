@@ -190,13 +190,13 @@
       rgba(8,1,13,calc(var(--sun-tint-strength) * .12)) 80%,
       transparent 100%)}
 
-  /* Asset-inspired energy ornament for the front page only. It is an additive overlay—not a
-     replacement background—so the established sky, sun, skyline, horizon and road keep their tone. */
-  #frontEnergy{position:fixed;left:50%;top:45%;width:min(78vw,500px);height:min(58dvh,640px);
+  /* Synthwave palm ornament for the front page only. It is an additive overlay—not a replacement
+     background—so the established sky, sun, skyline, horizon and road keep their tone. */
+  #frontEnergy{position:fixed;left:50%;top:48%;width:min(90vw,600px);height:min(56dvh,620px);
     transform:translate(-50%,-50%);z-index:1;pointer-events:none;opacity:0;
     background:url('./src/assets/front-energy-overlay.png') center/contain no-repeat;
-    mix-blend-mode:screen;filter:saturate(.78) brightness(.82);transition:opacity .35s ease}
-  body:has(#startOverlay:not(.hidden) #modeHome:not(.hidden)) #frontEnergy{opacity:.52}
+    mix-blend-mode:screen;filter:saturate(.72) brightness(.7);transition:opacity .35s ease}
+  body:has(#startOverlay:not(.hidden) #modeHome:not(.hidden)) #frontEnergy{opacity:.38}
   body::after{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;
     background:#000;opacity:var(--scene-scrim);transition:opacity .6s}
   /* The sunset line: a 2px bar straddling the horizon under six stacked blurs, the same layering

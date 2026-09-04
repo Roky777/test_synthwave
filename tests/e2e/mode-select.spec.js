@@ -16,7 +16,7 @@ test.describe('mode select screen', () => {
     expect(new Set(borders).size).toBe(1);
     expect(borders[0]).toBe('rgb(180, 76, 255)');
     await expect(page.locator('#gradeView')).toHaveClass(/hidden/);
-    await expect(page.locator('#frontEnergy')).toHaveCSS('opacity', '0.52');
+    await expect(page.locator('#frontEnergy')).toHaveCSS('opacity', '0.38');
   });
 
   test('opens grade modes in a separate view and returns', async ({ page }) => {
@@ -34,7 +34,7 @@ test.describe('mode select screen', () => {
     await page.click('#gradeBackBtn');
     await expect(page.locator('#modeHome')).not.toHaveClass(/hidden/);
     await expect(page.locator('#gradeView')).toHaveClass(/hidden/);
-    await expect(page.locator('#frontEnergy')).toHaveCSS('opacity', '0.52');
+    await expect(page.locator('#frontEnergy')).toHaveCSS('opacity', '0.38');
   });
 
   test('HUD and machine are hidden before a mode is picked', async ({ page }) => {
