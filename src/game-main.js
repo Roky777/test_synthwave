@@ -98,11 +98,13 @@ const MUSIC_VOLUME_KEY='wyp-music-volume';
 const MUSIC_MUTED_KEY='wyp-music-muted';
 const themeBtns=document.querySelectorAll('.themeBtn');
 const THEME_TRACK_START={synthwave:0,nebula:32};
-// Background music is intentionally atmospheric; gameplay cues and countdown ticks stay dominant.
-const MAX_MUSIC_VOLUME=.028;
-let musicLevel=.15;
+// Keep the soundtrack clearly audible by default while leaving headroom for gameplay cues.
+// The UI level is multiplied by this ceiling, so 40% starts just below the quietest game cue.
+const MAX_MUSIC_VOLUME=.07;
+const DEFAULT_MUSIC_LEVEL=.40;
+let musicLevel=DEFAULT_MUSIC_LEVEL;
 try{
-  const savedLevel=Number(localStorage.getItem(MUSIC_VOLUME_KEY)??.15);
+  const savedLevel=Number(localStorage.getItem(MUSIC_VOLUME_KEY)??DEFAULT_MUSIC_LEVEL);
   if(Number.isFinite(savedLevel))musicLevel=Math.max(0,Math.min(1,savedLevel));
 }catch{}
 let musicMuted=false;
@@ -133,7 +135,7 @@ applyMusicLevel(musicLevel,false);
 function toggleMusicPlayback(){
   clearTimeout(musicPauseTO);
   if(musicMuted){
-    if(musicLevel===0)musicLevel=.15;
+    if(musicLevel===0)musicLevel=DEFAULT_MUSIC_LEVEL;
     musicMuted=false;
     applyMusicLevel(musicLevel,false);
     playThemeMusic();

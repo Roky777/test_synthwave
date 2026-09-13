@@ -1,10 +1,11 @@
 import { test, expect } from '@playwright/test';
 
 const viewports=[
+  [280,653],[320,480],[344,882],
   [320,568],[360,640],[360,780],[375,667],[375,812],[390,844],[393,852],
-  [393,873],[412,915],[430,932],[844,390],[932,430],
+  [393,873],[412,915],[430,932],[653,280],[844,390],[932,430],
   [768,1024],[1024,1366],[1024,768],[1366,768],[1440,900],[1920,1080],
-  [2560,1440],[540,720],[720,540],
+  [2560,1440],[3840,2160],[540,720],[720,540],
 ];
 
 const inside=(box,width,height)=>box.left>=-1&&box.top>=-1&&box.right<=width+1&&box.bottom<=height+1;
@@ -21,7 +22,7 @@ test('all primary screens adapt across the viewport matrix',async({page})=>{
       const title=document.querySelector('.wordmark');
       const cardEls=[...document.querySelectorAll('#modeHome .diffBtn')];
       const app=rect('#app');
-      return {app,appBorder:getComputedStyle(document.querySelector('#app')).borderWidth,title:rect('.wordmark'),group:rect('#modeHome'),titleSize:parseFloat(getComputedStyle(title).fontSize),heading:rect('.modeSelectTitle'),
+      return {app,appBorder:getComputedStyle(document.querySelector('#app')).borderWidth,title:rect('.wordmark'),group:rect('#modeHome'),audio:rect('#startAudioControl'),titleSize:parseFloat(getComputedStyle(title).fontSize),heading:rect('.modeSelectTitle'),
         cards:cardEls.map(el=>el.getBoundingClientRect().toJSON()),
         cardTitleSizes:cardEls.map(el=>parseFloat(getComputedStyle(el.querySelector('.modeText')).fontSize)),
         cardDescSizes:cardEls.map(el=>parseFloat(getComputedStyle(el.querySelector('small')).fontSize)),
@@ -32,6 +33,10 @@ test('all primary screens adapt across the viewport matrix',async({page})=>{
     expect(mode.app.height,`${width}x${height} app tracks visible viewport`).toBeCloseTo(height,0);
     expect(mode.appBorder,`${width}x${height} outer screen remains frameless`).toBe('0px');
     expect(inside(mode.title,width,height),`${width}x${height} mode title`).toBe(true);
+    expect(inside(mode.audio,width,height),`${width}x${height} audio control`).toBe(true);
+    const titleOverlapsAudio=mode.title.left<mode.audio.right&&mode.title.right>mode.audio.left&&
+      mode.title.top<mode.audio.bottom&&mode.title.bottom>mode.audio.top;
+    expect(titleOverlapsAudio,`${width}x${height} title clears audio control`).toBe(false);
     expect(mode.heading.width,`${width}x${height} redundant mode heading remains hidden`).toBe(0);
     for(const card of mode.cards)expect(inside(card,width,height),`${width}x${height} mode card`).toBe(true);
     expect(mode.cards[0].width).toBeCloseTo(mode.cards[1].width,0);

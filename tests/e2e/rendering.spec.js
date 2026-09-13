@@ -220,7 +220,7 @@ test('dims the scenery and keeps music below feedback volume during play', async
     musicVolume:document.querySelector('#themeMusic').volume,
   }));
   expect(state.active).toBe(true);
-  expect(state.musicVolume).toBeLessThanOrEqual(.008);
+  expect(state.musicVolume).toBeLessThanOrEqual(.03);
   await expect.poll(()=>page.evaluate(() =>
     parseFloat(getComputedStyle(document.querySelector('#sun')).opacity)
   )).toBeLessThan(.7);
@@ -243,6 +243,9 @@ test('toggles game music directly from the speaker button', async ({ page }) => 
 test('opens a well-aligned front-page slider and persists audio state', async ({ page }) => {
   await openApp(page);
   await expect(page.locator('#startAudioControl')).toBeVisible();
+  await expect(page.locator('#startVolumeSlider')).toHaveValue('40');
+  await expect(page.locator('#startVolumeValue')).toHaveText('40%');
+  expect(await page.locator('#themeMusic').evaluate(audio=>audio.volume)).toBeCloseTo(.028,5);
   await expect(page.locator('#startVolumePanel')).toHaveClass(/hidden/);
   await page.click('#startAudioBtn');
   await expect(page.locator('#startVolumePanel')).toBeVisible();

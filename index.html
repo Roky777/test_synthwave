@@ -798,6 +798,8 @@
     .hudBox{padding:4px 6px}
     .chip{font-size:9px}
     .tagline br{display:none}
+    /* Keep the corner audio control clear of the two-line logo on narrow phones. */
+    #startOverlay:has(#modeHome:not(.hidden))>.wordmark{margin-top:48px}
   }
   @media (orientation: landscape) and (max-height: 560px){
     :root{
@@ -845,6 +847,14 @@
     #gradeView .diffRow{gap:7px}
     #gradeView .diffBtn{height:62px;min-height:62px}
     #gradeView .modeIcon{width:38px;height:38px}
+  }
+  @media (orientation:portrait) and (max-height:520px){
+    #startOverlay:has(#gradeView:not(.hidden)){padding-top:max(58px,calc(env(safe-area-inset-top) + 48px))}
+    #gradeView{gap:10px}
+    .gradeHeading h2{font-size:23px;line-height:.95}
+    #gradeView .diffRow{gap:6px}
+    #gradeView .diffBtn{height:54px;min-height:54px;padding-block:5px}
+    #gradeView .modeIcon{width:34px;height:34px}
   }
 
   /* SYNTHWAVE neon UI: the viewport itself stays frameless; neon remains on game controls. */
@@ -1081,8 +1091,8 @@
       <button id="startAudioBtn" type="button" aria-label="Open music settings" aria-expanded="false" title="Music settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 7h14M5 17h14"/><circle cx="9" cy="7" r="2.2" fill="currentColor" stroke="none"/><circle cx="15" cy="17" r="2.2" fill="currentColor" stroke="none"/></svg></button>
       <div id="startVolumePanel" class="hidden">
         <button id="startMuteToggle" class="audioToggle" type="button">MUTE</button>
-        <input id="startVolumeSlider" type="range" min="0" max="100" step="1" value="15" aria-label="Music volume">
-        <span id="startVolumeValue">15%</span>
+        <input id="startVolumeSlider" type="range" min="0" max="100" step="1" value="40" aria-label="Music volume">
+        <span id="startVolumeValue">40%</span>
       </div>
     </div>
     <h1 class="wordmark">
